@@ -861,7 +861,7 @@ public class Twitter extends TwitterSupport
     /**
      * {@inheritDoc}
      */
-    public UserList deleteUserList(int listId) throws TwitterException {
+    public UserList destroyUserList(int listId) throws TwitterException {
         return TwitterTransport.createUserList(http.delete(getBaseURL() + getScreenName() +
                 "/lists/" + listId + ".json", true));
     }
