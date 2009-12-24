@@ -26,11 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.http.Response;
-import twitter4j.org.json.JSONArray;
-import twitter4j.org.json.JSONException;
-import twitter4j.org.json.JSONObject;
-
 import java.util.Arrays;
 
 /**
@@ -38,59 +33,21 @@ import java.util.Arrays;
  *
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
-public class IDs extends TwitterResponseImpl implements CursorSupport {
+public class IDs implements TwitterResponse {
     private int[] ids;
     private long previousCursor = -1;
     private long nextCursor = -1;
     private static final long serialVersionUID = -6585026560164704953L;
+    private RateLimitStatus rateLimitStatus;
 
-    private IDs(Response res) throws TwitterException {
-        super(res);
-    }
-    /*package*/ static IDs getFriendsIDs(Response res) throws TwitterException {
-        IDs friendsIDs = new IDs(res);
-        JSONObject json = res.asJSONObject();
-        JSONArray idList;
-        try {
-            idList = json.getJSONArray("ids");
-            friendsIDs.ids = new int[idList.length()];
-            for (int i = 0; i < idList.length(); i++) {
-                try {
-                    friendsIDs.ids[i] = Integer.parseInt(idList.getString(i));
-                } catch (NumberFormatException nfe) {
-                    throw new TwitterException("Twitter API returned malformed response: " + json, nfe);
-                }
-            }
-            friendsIDs.previousCursor = ParseUtil.getLong("previous_cursor", json);
-            friendsIDs.nextCursor = ParseUtil.getLong("next_cursor", json);
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone);
-        }
-        return friendsIDs;
-    }
-
-
-    /*package*/ static IDs getBlockIDs(Response res) throws TwitterException {
-        IDs blockIDs = new IDs(res);
-        JSONArray idList = null;
-        try {
-            idList = res.asJSONArray();
-            blockIDs.ids = new int[idList.length()];
-            for (int i = 0; i < idList.length(); i++) {
-                try {
-                    blockIDs.ids[i] = Integer.parseInt(idList.getString(i));
-                } catch (NumberFormatException nfe) {
-                    throw new TwitterException("Twitter API returned malformed response: " + idList, nfe);
-                }
-            }
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone);
-        }
-        return blockIDs;
-    }
+    public IDs() {}
 
     public int[] getIDs() {
         return ids;
+    }
+
+    public void setIDs(int[] ids) {
+        this.ids = ids;
     }
 
     public boolean hasPrevious(){
@@ -101,12 +58,20 @@ public class IDs extends TwitterResponseImpl implements CursorSupport {
         return previousCursor;
     }
 
+    public void setPreviousCursor(long previousCursor) {
+        this.previousCursor = previousCursor;
+    }
+
     public boolean hasNext(){
         return 0 != nextCursor;
     }
 
     public long getNextCursor() {
         return nextCursor;
+    }
+
+    public void setNextCursor(long nextCursor) {
+        this.nextCursor = nextCursor;
     }
 
     @Override
@@ -132,6 +97,15 @@ public class IDs extends TwitterResponseImpl implements CursorSupport {
                 "ids=" + ids +
                 ", previousCursor=" + previousCursor +
                 ", nextCursor=" + nextCursor +
+                ", rateLimitStatus=" + rateLimitStatus +
                 '}';
+    }
+
+    public RateLimitStatus getRateLimitStatus() {
+        return rateLimitStatus;
+    }
+
+    public void setRateLimitStatus(RateLimitStatus rateLimitStatus) {
+        this.rateLimitStatus = rateLimitStatus;
     }
 }

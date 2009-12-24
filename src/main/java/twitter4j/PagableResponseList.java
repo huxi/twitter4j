@@ -26,9 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.http.Response;
-import twitter4j.org.json.JSONObject;
-
 /**
  * CursorSupport'ed ResponseList implementation.
  *
@@ -36,17 +33,15 @@ import twitter4j.org.json.JSONObject;
  */
 public class PagableResponseList<T extends TwitterResponse> extends
         ResponseList<T> implements CursorSupport{
-    private final long previousCursor;
-    private final long nextCursor;
+    private long previousCursor;
+    private long nextCursor;
     private static final long serialVersionUID = 1531950333538983361L;
 
+    public PagableResponseList() {
+    }
 
-    /*package*/
-
-    PagableResponseList(int size, JSONObject json, Response res) {
-        super(size, res);
-        this.previousCursor = ParseUtil.getLong("previous_cursor", json);
-        this.nextCursor = ParseUtil.getLong("next_cursor", json);
+    public PagableResponseList(int initialCapacity) {
+        super(initialCapacity);
     }
 
     public boolean hasPrevious() {
@@ -57,6 +52,10 @@ public class PagableResponseList<T extends TwitterResponse> extends
         return previousCursor;
     }
 
+    public void setPreviousCursor(long previousCursor) {
+        this.previousCursor = previousCursor;
+    }
+
     public boolean hasNext() {
         return 0 != nextCursor;
     }
@@ -65,4 +64,17 @@ public class PagableResponseList<T extends TwitterResponse> extends
         return nextCursor;
     }
 
+    public void setNextCursor(long nextCursor) {
+        this.nextCursor = nextCursor;
+    }
+
+    @Override
+    public String toString() {
+        return "PagableResponseList{" +
+                "content=" + superToString() +
+                ", nextCursor=" + nextCursor +
+                ", previousCursor=" + previousCursor +
+                ", rateLimitStatus=" + getRateLimitStatus() +
+                '}';
+    }
 }

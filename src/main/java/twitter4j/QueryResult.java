@@ -26,15 +26,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.http.Response;
-import twitter4j.org.json.JSONArray;
-import twitter4j.org.json.JSONException;
-import twitter4j.org.json.JSONObject;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import static twitter4j.ParseUtil.*;
 /**
  * A data class representing search API response
  * @author Yusuke Yamamoto - yusuke at mac.com
@@ -53,30 +47,10 @@ public class QueryResult implements Serializable {
     private List<Tweet> tweets;
     private static final long serialVersionUID = -9059136565234613286L;
 
-    /*package*/ QueryResult(Response res) throws TwitterException {
-        JSONObject json = res.asJSONObject();
-        try {
-            sinceId = json.getLong("since_id");
-            maxId = json.getLong("max_id");
-            refreshUrl = getString("refresh_url", json, true);
-
-            resultsPerPage = json.getInt("results_per_page");
-            warning = getString("warning", json, false);
-            completedIn = json.getDouble("completed_in");
-            page = json.getInt("page");
-            query = getString("query", json, true);
-            JSONArray array = json.getJSONArray("results");
-            tweets = new ArrayList<Tweet>(array.length());
-            for (int i = 0; i < array.length(); i++) {
-                JSONObject tweet = array.getJSONObject(i);
-                tweets.add(new Tweet(tweet));
-            }
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone.getMessage() + ":" + json.toString(), jsone);
-        }
+    public QueryResult() {
     }
-    /*package*/ QueryResult(Query query) throws TwitterException {
-        super();
+    
+    public QueryResult(Query query) {
         sinceId = query.getSinceId();
         resultsPerPage = query.getRpp();
         page = query.getPage();
@@ -87,36 +61,72 @@ public class QueryResult implements Serializable {
         return sinceId;
     }
 
+    public void setSinceId(long sinceId) {
+        this.sinceId = sinceId;
+    }
+
     public long getMaxId() {
         return maxId;
+    }
+
+    public void setMaxId(long maxId) {
+        this.maxId = maxId;
     }
 
     public String getRefreshUrl() {
         return refreshUrl;
     }
 
+    public void setRefreshUrl(String refreshUrl) {
+        this.refreshUrl = refreshUrl;
+    }
+
     public int getResultsPerPage() {
         return resultsPerPage;
+    }
+
+    public void setResultsPerPage(int resultsPerPage) {
+        this.resultsPerPage = resultsPerPage;
     }
 
     public String getWarning() {
         return warning;
     }
 
+    public void setWarning(String warning) {
+        this.warning = warning;
+    }
+
     public double getCompletedIn() {
         return completedIn;
+    }
+
+    public void setCompletedIn(double completedIn) {
+        this.completedIn = completedIn;
     }
 
     public int getPage() {
         return page;
     }
 
+    public void setPage(int page) {
+        this.page = page;
+    }
+
     public String getQuery() {
         return query;
     }
 
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
     public List<Tweet> getTweets() {
         return tweets;
+    }
+
+    public void setTweets(List<Tweet> tweets) {
+        this.tweets = tweets;
     }
 
     @Override

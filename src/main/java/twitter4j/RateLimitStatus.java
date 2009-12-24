@@ -27,10 +27,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package twitter4j;
 
 import twitter4j.http.Response;
+import twitter4j.impl.TwitterTransport;
 import twitter4j.org.json.JSONObject;
 
 import java.util.Date;
-import static twitter4j.ParseUtil.*;
 /**
  * A data class representing Twitter REST API's rate limit status
  *
@@ -44,11 +44,11 @@ public class RateLimitStatus implements java.io.Serializable{
     private Date resetTime;
     private static final long serialVersionUID = 753839064833831619L;
 
-    // disabling the default constructor
-    private RateLimitStatus() {
-        throw new AssertionError();
+
+    public RateLimitStatus() {
     }
-    private RateLimitStatus(int hourlyLimit, int remainingHits, int resetTimeInSeconds, Date resetTime){
+
+    public RateLimitStatus(int hourlyLimit, int remainingHits, int resetTimeInSeconds, Date resetTime){
         this.hourlyLimit = hourlyLimit;
         this.remainingHits = remainingHits;
         this.resetTimeInSeconds = resetTimeInSeconds;
@@ -57,40 +57,11 @@ public class RateLimitStatus implements java.io.Serializable{
 
     static RateLimitStatus createFromJSONResponse(Response res) throws TwitterException {
         JSONObject json = res.asJSONObject();
-        return new RateLimitStatus(getInt("hourly_limit", json),
-                getInt("remaining_hits", json),
-                getInt("reset_time_in_seconds", json),
-                getDate("reset_time", json, "EEE MMM d HH:mm:ss Z yyyy"));
+        return TwitterTransport.createRateLimitStatus(json);
     }
 
     static RateLimitStatus createFromResponseHeader(Response res) {
-        int remainingHits;//"X-RateLimit-Remaining"
-        int hourlyLimit;//"X-RateLimit-Limit"
-        int resetTimeInSeconds;//not included in the response header. Need to be calculated.
-        Date resetTime;//new Date("X-RateLimit-Reset")
-
-
-        String limit = res.getResponseHeader("X-RateLimit-Limit");
-        if(null != limit){
-            hourlyLimit = Integer.parseInt(limit);
-        }else{
-            return null;
-        }
-        String remaining = res.getResponseHeader("X-RateLimit-Remaining");
-        if(null != remaining){
-            remainingHits = Integer.parseInt(remaining);
-        }else{
-            return null;
-        }
-        String reset = res.getResponseHeader("X-RateLimit-Reset");
-        if(null != reset){
-            long longReset =  Long.parseLong(reset) * 1000;
-            resetTime = new Date(longReset);
-            resetTimeInSeconds =  (int)(longReset - System.currentTimeMillis()) / 1000;
-        }else{
-            return null;
-        }
-        return new RateLimitStatus(hourlyLimit, remainingHits, resetTimeInSeconds, resetTime);
+        return TwitterTransport.createRateLimitStatus(res);
     }
 
     /**

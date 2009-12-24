@@ -26,20 +26,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.http.Response;
-import twitter4j.org.json.JSONArray;
-import twitter4j.org.json.JSONException;
-import twitter4j.org.json.JSONObject;
-
 import java.io.Serializable;
 import java.util.Date;
-import static twitter4j.ParseUtil.*;
 
 /**
  * A data class representing one single status of a user.
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
-public class Status extends TwitterResponseImpl implements java.io.Serializable {
+public class Status  implements TwitterResponse {
 
     private Date createdAt;
     private long id;
@@ -52,61 +46,7 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
 
     private Status retweetedStatus;
     private static final long serialVersionUID = 1608000492860584608L;
-
-
-    public static Status createFromResponseHeader(Response res) throws TwitterException
-    {
-        RateLimitStatus rateLimit = RateLimitStatus.createFromResponseHeader(res);
-        Status result = createFromJSONObject(res.asJSONObject());
-        result.setRateLimitStatus(rateLimit);
-		return result;
-    }
-
-    public static Status createFromJSONObject(JSONObject json) throws TwitterException {
-        Status result=new Status();
-        result.setId(getLong("id", json));
-        result.setText(ParseUtil.getText("text", json));
-        result.setSource(ParseUtil.getText("source", json));
-        result.setCreatedAt(getDate("created_at", json));
-        result.setTruncated(getBoolean("truncated", json));
-        result.setFavorited(getBoolean("favorited", json));
-
-        long replyToStatusId = getLong("in_reply_to_status_id", json);
-        if(replyToStatusId >= 0)
-        {
-            InReplyTo reply = new InReplyTo();
-            reply.setStatusId(replyToStatusId);
-            reply.setUserId(getInt("in_reply_to_user_id", json));
-            reply.setUserScreenName(ParseUtil.getText("in_reply_to_screen_name", json));
-            result.setInReplyTo(reply);
-        }
-        try {
-            if (!json.isNull("user")) {
-                result.setUser(User.createFromJSONObject(json.getJSONObject("user")));
-            }
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone);
-        }
-        try {
-            if (!json.isNull("geo")) {
-                String coordinates = json.getJSONObject("geo")
-                        .getString("coordinates");
-                coordinates = coordinates.substring(1, coordinates.length() - 1);
-                String[] point = coordinates.split(",");
-                result.setGeoLocation(new GeoLocation(Double.parseDouble(point[0]),
-                        Double.parseDouble(point[1])));
-            }
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone);
-        }
-        if (!json.isNull("retweeted_status")) {
-            try {
-                result.setRetweetedStatus(createFromJSONObject(json.getJSONObject("retweeted_status")));
-            } catch (JSONException ignore) {
-            }
-        }
-        return result;
-    }
+    private RateLimitStatus rateLimitStatus;
 
     public Status()
     {}
@@ -258,19 +198,6 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
         this.retweetedStatus = retweetedStatus;
     }
 
-    /*package*/ static ResponseList<Status> createStatusList(Response res) throws TwitterException {
-        try {
-            JSONArray list = res.asJSONArray();
-            int size = list.length();
-            ResponseList<Status> statuses = new ResponseList<Status>(size, res);
-            for (int i = 0; i < size; i++) {
-                statuses.add(createFromJSONObject(list.getJSONObject(i)));
-            }
-            return statuses;
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone);
-        }
-    }
 
 
     @Override
@@ -302,7 +229,16 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
                 ", geoLocation=" + geoLocation +
                 ", retweetedStatus=" + retweetedStatus +
                 ", user=" + user +
+                ", rateLimitStatus=" + rateLimitStatus +
                 '}';
+    }
+
+    public RateLimitStatus getRateLimitStatus() {
+        return rateLimitStatus;
+    }
+
+    public void setRateLimitStatus(RateLimitStatus rateLimitStatus) {
+        this.rateLimitStatus = rateLimitStatus;
     }
 
     public static class InReplyTo

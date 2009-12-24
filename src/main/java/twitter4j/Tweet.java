@@ -26,12 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.org.json.JSONException;
-import twitter4j.org.json.JSONObject;
-
 import java.io.Serializable;
 import java.util.Date;
-import static twitter4j.ParseUtil.*;
 
 /**
  * A data class representing a Tweet in the search response
@@ -50,33 +46,6 @@ public class Tweet implements Serializable {
     private Date createdAt;
     private static final long serialVersionUID = 4299736733993211587L;
 
-    /*package*/Tweet(JSONObject tweet) throws TwitterException {
-        super();
-        try {
-            text = getString("text", tweet, false);
-            try{
-                toUserId = tweet.getInt("to_user_id");
-                toUser = tweet.getString("to_user");
-            }catch(JSONException ignore){
-                // to_user_id can be "null"
-                // to_user can be missing
-            }
-            fromUser = tweet.getString("from_user");
-            id = tweet.getLong("id");
-            fromUserId = tweet.getInt("from_user_id");
-            try{
-                isoLanguageCode = tweet.getString("iso_language_code");
-            }catch(JSONException ignore){
-                // iso_language_code can be missing
-            }
-            source = getString("source", tweet, true);
-            profileImageUrl = getString("profile_image_url", tweet, true);
-            createdAt = parseDate(tweet.getString("created_at"), "EEE, dd MMM yyyy HH:mm:ss z");
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone.getMessage() + ":" + tweet.toString(), jsone);
-        }
-
-    }
 
     /**
      * returns the text
@@ -87,12 +56,20 @@ public class Tweet implements Serializable {
         return text;
     }
 
+    public void setText(String text) {
+        this.text = text;
+    }
+
     /**
      * returns the to_user_id
      * @return the to_user_id value or -1 if to_user_id is not specified by the tweet
      */
     public int getToUserId() {
         return toUserId;
+    }
+
+    public void setToUserId(int toUserId) {
+        this.toUserId = toUserId;
     }
 
     /**
@@ -103,6 +80,10 @@ public class Tweet implements Serializable {
         return toUser;
     }
 
+    public void setToUser(String toUser) {
+        this.toUser = toUser;
+    }
+
     /**
      * returns the from_user
      * @return the from_user
@@ -111,12 +92,20 @@ public class Tweet implements Serializable {
         return fromUser;
     }
 
+    public void setFromUser(String fromUser) {
+        this.fromUser = fromUser;
+    }
+
     /**
      * returns the status id of the tweet
      * @return the status id
      */
     public long getId() {
         return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     /**
@@ -129,12 +118,20 @@ public class Tweet implements Serializable {
         return fromUserId;
     }
 
+    public void setFromUserId(int fromUserId) {
+        this.fromUserId = fromUserId;
+    }
+
     /**
      * returns the iso language code of the tweet
      * @return the iso language code of the tweet or null if iso_language_code is not specified by the tweet
      */
     public String getIsoLanguageCode() {
         return isoLanguageCode;
+    }
+
+    public void setIsoLanguageCode(String isoLanguageCode) {
+        this.isoLanguageCode = isoLanguageCode;
     }
 
     /**
@@ -145,6 +142,10 @@ public class Tweet implements Serializable {
         return source;
     }
 
+    public void setSource(String source) {
+        this.source = source;
+    }
+
     /**
      * returns the profile_image_url
      * @return the profile_image_url
@@ -152,12 +153,21 @@ public class Tweet implements Serializable {
     public String getProfileImageUrl() {
         return profileImageUrl;
     }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+
     /**
      * returns the created_at
      * @return the created_at
      */
     public Date getCreatedAt() {
         return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
     @Override

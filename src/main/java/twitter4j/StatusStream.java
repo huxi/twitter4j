@@ -27,6 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package twitter4j;
 
 import twitter4j.http.Response;
+import twitter4j.impl.TwitterTransport;
 import twitter4j.org.json.JSONException;
 import twitter4j.org.json.JSONObject;
 
@@ -72,11 +73,11 @@ public class StatusStream {
                 try {
                     JSONObject json = new JSONObject(line);
                     if (!json.isNull("text")) {
-                        listener.onStatus(Status.createFromJSONObject(json));
+                        listener.onStatus(TwitterTransport.createStatus(json));
                     } else if (!json.isNull("delete")) {
-                        listener.onDeletionNotice(new StatusDeletionNotice(json));
+                        listener.onDeletionNotice(TwitterTransport.createStatusDeletionNotice(json));
                     } else if (!json.isNull("limit")) {
-                        listener.onTrackLimitationNotice(ParseUtil.getInt("track", json.getJSONObject("limit")));
+                        listener.onTrackLimitationNotice(TwitterTransport.createTrackLimitationNotice(json));
                     }
                 } catch (JSONException ex) {
                     listener.onException(ex);

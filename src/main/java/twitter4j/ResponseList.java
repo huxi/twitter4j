@@ -26,8 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.http.Response;
-
 import java.util.ArrayList;
 
 /**
@@ -41,9 +39,11 @@ public class ResponseList<T extends TwitterResponse> extends ArrayList<T>
     private transient RateLimitStatus rateLimitStatus = null;
     private static final long serialVersionUID = 5646617841989265312L;
 
-    ResponseList(int size, Response res) {
-        super(size);
-        this.rateLimitStatus = RateLimitStatus.createFromResponseHeader(res);
+    public ResponseList() {
+    }
+
+    public ResponseList(int initialCapacity) {
+        super(initialCapacity);
     }
 
     /**
@@ -51,5 +51,22 @@ public class ResponseList<T extends TwitterResponse> extends ArrayList<T>
      */
     public RateLimitStatus getRateLimitStatus() {
         return rateLimitStatus;
+    }
+
+    public void setRateLimitStatus(RateLimitStatus rateLimitStatus) {
+        this.rateLimitStatus = rateLimitStatus;
+    }
+
+    protected String superToString()
+    {
+        return super.toString();
+    }
+
+    @Override
+    public String toString() {
+        return "ResponseList{" +
+                "content=" + superToString() +
+                ", rateLimitStatus=" + rateLimitStatus +
+                '}';
     }
 }

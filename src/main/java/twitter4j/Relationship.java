@@ -26,17 +26,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.http.Response;
-import twitter4j.org.json.JSONObject;
-import twitter4j.org.json.JSONException;
-import static twitter4j.ParseUtil.*;
 /**
  * A class that has detailed information about a relationship between two users
  * @author Perry Sakkaris - psakkaris at gmail.com
  * @see <a href="http://apiwiki.twitter.com/Twitter-REST-API-Method%3A-friendships-show">REST API DOCUMENTATION</a>
  * @since Twitter4J 2.1.0
  */
-public class Relationship extends TwitterResponseImpl implements java.io.Serializable {
+public class Relationship implements TwitterResponse {
 
     private int targetUserId;
     private String targetUserScreenName;
@@ -47,45 +43,7 @@ public class Relationship extends TwitterResponseImpl implements java.io.Seriali
     private int sourceUserId;
     private String sourceUserScreenName;
     private static final long serialVersionUID = 697705345506281849L;
-
-    /*package*/
-
-    Relationship(Response res) throws TwitterException {
-        super(res);
-        init(res.asJSONObject());
-    }
-
-    /*package*/
-
-    Relationship(Response res, JSONObject json) throws TwitterException {
-        super(res);
-        init(json);
-    }
-
-    /*package*/
-
-    Relationship(JSONObject json) throws TwitterException {
-        super();
-        init(json);
-    }
-
-    private void init(JSONObject json) throws TwitterException {
-        try {
-            JSONObject relationship = json.getJSONObject("relationship");
-            JSONObject sourceJson = relationship.getJSONObject("source");
-            JSONObject targetJson = relationship.getJSONObject("target");
-            sourceUserId = getInt("id", sourceJson);
-            targetUserId = getInt("id", targetJson);
-            sourceUserScreenName = getText("screen_name", sourceJson);
-            targetUserScreenName = getText("screen_name", targetJson);
-            sourceBlockingTarget = getBoolean("blocking", sourceJson);
-            sourceFollowingTarget = getBoolean("following", sourceJson);
-            sourceFollowedByTarget = getBoolean("followed_by", sourceJson);
-            sourceNotificationsEnabled = getBoolean("notifications_enabled", sourceJson);
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone.getMessage() + ":" + json.toString(), jsone);
-        }
-    }
+    private RateLimitStatus rateLimitStatus;
 
     /**
      * Returns the source user id
@@ -94,6 +52,10 @@ public class Relationship extends TwitterResponseImpl implements java.io.Seriali
      */
     public int getSourceUserId() {
         return sourceUserId;
+    }
+
+    public void setSourceUserId(int sourceUserId) {
+        this.sourceUserId = sourceUserId;
     }
 
     /**
@@ -105,6 +67,10 @@ public class Relationship extends TwitterResponseImpl implements java.io.Seriali
         return targetUserId;
     }
 
+    public void setTargetUserId(int targetUserId) {
+        this.targetUserId = targetUserId;
+    }
+
     /**
      * Returns if the source user is blocking the target user
      *
@@ -112,6 +78,10 @@ public class Relationship extends TwitterResponseImpl implements java.io.Seriali
      */
     public boolean isSourceBlockingTarget() {
         return sourceBlockingTarget;
+    }
+
+    public void setSourceBlockingTarget(boolean sourceBlockingTarget) {
+        this.sourceBlockingTarget = sourceBlockingTarget;
     }
 
     /**
@@ -123,6 +93,10 @@ public class Relationship extends TwitterResponseImpl implements java.io.Seriali
         return sourceUserScreenName;
     }
 
+    public void setSourceUserScreenName(String sourceUserScreenName) {
+        this.sourceUserScreenName = sourceUserScreenName;
+    }
+
     /**
      * Returns the target user screen name
      *
@@ -132,6 +106,10 @@ public class Relationship extends TwitterResponseImpl implements java.io.Seriali
         return targetUserScreenName;
     }
 
+    public void setTargetUserScreenName(String targetUserScreenName) {
+        this.targetUserScreenName = targetUserScreenName;
+    }
+
     /**
      * Checks if source user is following target user
      *
@@ -139,6 +117,10 @@ public class Relationship extends TwitterResponseImpl implements java.io.Seriali
      */
     public boolean isSourceFollowingTarget() {
         return sourceFollowingTarget;
+    }
+
+    public void setSourceFollowingTarget(boolean sourceFollowingTarget) {
+        this.sourceFollowingTarget = sourceFollowingTarget;
     }
 
     /**
@@ -151,6 +133,7 @@ public class Relationship extends TwitterResponseImpl implements java.io.Seriali
         return sourceFollowedByTarget;
     }
 
+
     /**
      * Checks if source user is being followed by target user
      *
@@ -158,6 +141,10 @@ public class Relationship extends TwitterResponseImpl implements java.io.Seriali
      */
     public boolean isSourceFollowedByTarget() {
         return sourceFollowedByTarget;
+    }
+
+    public void setSourceFollowedByTarget(boolean sourceFollowedByTarget) {
+        this.sourceFollowedByTarget = sourceFollowedByTarget;
     }
 
     /**
@@ -177,6 +164,10 @@ public class Relationship extends TwitterResponseImpl implements java.io.Seriali
      */
     public boolean isSourceNotificationsEnabled() {
         return sourceNotificationsEnabled;
+    }
+
+    public void setSourceNotificationsEnabled(boolean sourceNotificationsEnabled) {
+        this.sourceNotificationsEnabled = sourceNotificationsEnabled;
     }
 
     @Override
@@ -215,6 +206,15 @@ public class Relationship extends TwitterResponseImpl implements java.io.Seriali
                 ", sourceFollowingTarget=" + sourceFollowingTarget +
                 ", sourceFollowedByTarget=" + sourceFollowedByTarget +
                 ", sourceNotificationsEnabled=" + sourceNotificationsEnabled +
+                ", rateLimitStatus=" + rateLimitStatus +
                 '}';
+    }
+
+    public RateLimitStatus getRateLimitStatus() {
+        return rateLimitStatus;
+    }
+
+    public void setRateLimitStatus(RateLimitStatus rateLimitStatus) {
+        this.rateLimitStatus = rateLimitStatus;
     }
 }

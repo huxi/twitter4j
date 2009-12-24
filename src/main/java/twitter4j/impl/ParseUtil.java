@@ -24,8 +24,9 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package twitter4j;
+package twitter4j.impl;
 
+import twitter4j.TwitterException;
 import twitter4j.http.HTMLEntity;
 import twitter4j.org.json.JSONException;
 import twitter4j.org.json.JSONObject;

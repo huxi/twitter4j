@@ -26,23 +26,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.http.Response;
-import twitter4j.org.json.JSONArray;
-import twitter4j.org.json.JSONException;
-import twitter4j.org.json.JSONObject;
-
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
-import static twitter4j.ParseUtil.*;
 
 /**
  * A data class representing Basic user information element
  * @author Yusuke Yamamoto - yusuke at mac.com
  * @see <a href="http://apiwiki.twitter.com/REST+API+Documentation#Basicuserinformationelement">REST API Documentation - Basic user information element</a>
  */
-public class User extends TwitterResponseImpl implements java.io.Serializable {
+public class User implements TwitterResponse {
 
     private int id;
     private String name;
@@ -65,70 +59,10 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
     private boolean isGeoEnabled;
     private boolean isVerified;
     private static final long serialVersionUID = -6345893237975349030L;
+    private RateLimitStatus rateLimitStatus;
 
-	public static User createFromResponseHeader(Response res) throws TwitterException
-	{
-        RateLimitStatus rateLimit = RateLimitStatus.createFromResponseHeader(res);
-        User result = createFromJSONObject(res.asJSONObject());
-        result.setRateLimitStatus(rateLimit);
-		return result;
-	}
 
-	public static User createFromJSONObject(JSONObject json) throws TwitterException {
-		User result=new User();
-		try {
-			result.setId(json.getInt("id"));
-			result.setName(json.getString("name"));
-			result.setScreenName(json.getString("screen_name"));
-			result.setLocation(json.getString("location"));
-			result.setDescription(json.getString("description"));
-			result.setURL(json.getString("url"));
-			result.setProtected(json.getBoolean("protected"));
-			result.setGeoEnabled(json.getBoolean("geo_enabled"));
-			result.setVerified(json.getBoolean("verified"));
-			result.setFollowersCount(json.getInt("followers_count"));
-
-            Profile profile = new Profile();
-
-            profile.setImageUrl(json.getString("profile_image_url"));
-			profile.setBackgroundColor(json.getString("profile_background_color"));
-			profile.setTextColor(json.getString("profile_text_color"));
-			profile.setLinkColor(json.getString("profile_link_color"));
-			profile.setSidebarFillColor(json.getString("profile_sidebar_fill_color"));
-			profile.setSidebarBorderColor(json.getString("profile_sidebar_border_color"));
-            profile.setBackgroundImageUrl(json.getString("profile_background_image_url"));
-            profile.setBackgroundTile(json.getString("profile_background_tile"));
-
-            result.setProfile(profile);
-
-			result.setFriendsCount(json.getInt("friends_count"));
-			result.setCreatedAt(parseDate(json.getString("created_at"), "EEE MMM dd HH:mm:ss z yyyy"));
-			result.setFavouritesCount(json.getInt("favourites_count"));
-			result.setUtcOffset(getInt("utc_offset", json));
-			result.setTimeZone(json.getString("time_zone"));
-			result.setStatusesCount(json.getInt("statuses_count"));
-			if (!json.isNull("status")) {
-				JSONObject status = json.getJSONObject("status");
-                result.setStatus(Status.createFromJSONObject(status));
-            /*
-				statusCreatedAt = parseDate(status.getString("created_at"), "EEE MMM dd HH:mm:ss z yyyy");
-				statusId = status.getLong("id");
-				statusText = status.getString("text");
-				statusSource = status.getString("source");
-				statusTruncated = status.getBoolean("truncated");
-				statusInReplyToStatusId = getLong("in_reply_to_status_id", status);
-				statusInReplyToUserId = getInt("in_reply_to_user_id", status);
-				statusFavorited = status.getBoolean("favorited");
-				statusInReplyToScreenName = status.getString("in_reply_to_screen_name");
-			*/
-			}
-		} catch (JSONException jsone) {
-			throw new TwitterException(jsone.getMessage() + ":" + json.toString(), jsone);
-		}
-		return result;
-	}
-
-	public User()
+    public User()
 	{}
 
 
@@ -247,41 +181,6 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
         this.followersCount = followersCount;
     }
 
-    /*package*/ static PagableResponseList<User> createPagableUserList(Response res) throws TwitterException {
-        try {
-            JSONObject json = res.asJSONObject();
-            JSONArray list = json.getJSONArray("users");
-            int size = list.length();
-            PagableResponseList<User> users =
-                    new PagableResponseList<User>(size, json, res);
-            for (int i = 0; i < size; i++) {
-                //users.add(new User(list.getJSONObject(i)));
-                users.add(createFromJSONObject(list.getJSONObject(i)));
-            }
-            return users;
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone);
-        } catch (TwitterException te) {
-            throw te;
-        }
-    }
-    /*package*/ static ResponseList<User> createUserList(Response res) throws TwitterException {
-        try {
-            JSONArray list = res.asJSONArray();
-            int size = list.length();
-            ResponseList<User> users =
-                    new ResponseList<User>(size, res);
-            for (int i = 0; i < size; i++) {
-                //users.add(new User(list.getJSONObject(i)));
-                users.add(createFromJSONObject(list.getJSONObject(i)));
-            }
-            return users;
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone);
-        } catch (TwitterException te) {
-            throw te;
-        }
-    }
 
     /**
      *
@@ -396,7 +295,7 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
     @Override
     public String toString() {
         return "User{" +
-                ", id=" + id +
+                "id=" + id +
                 ", name='" + name + '\'' +
                 ", screenName='" + screenName + '\'' +
                 ", location='" + location + '\'' +
@@ -414,7 +313,16 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
                 ", statusesCount=" + statusesCount +
                 ", geoEnabled=" + isGeoEnabled +
                 ", verified=" + isVerified +
+                ", rateLimitStatus=" + rateLimitStatus +
                 '}';
+    }
+
+    public RateLimitStatus getRateLimitStatus() {
+        return rateLimitStatus;
+    }
+
+    public void setRateLimitStatus(RateLimitStatus rateLimitStatus) {
+        this.rateLimitStatus = rateLimitStatus;
     }
 
     public static class Profile

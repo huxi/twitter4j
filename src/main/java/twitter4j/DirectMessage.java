@@ -26,64 +26,56 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.http.Response;
-import twitter4j.org.json.JSONArray;
-import twitter4j.org.json.JSONException;
-import twitter4j.org.json.JSONObject;
-
 import java.util.Date;
-import static twitter4j.ParseUtil.*;
+
 /**
  * A data class representing sent/received direct message.
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
-public class DirectMessage extends TwitterResponseImpl implements java.io.Serializable {
+public class DirectMessage implements TwitterResponse {
     private int id;
     private String text;
-    private int sender_id;
-    private int recipient_id;
-    private Date created_at;
-    private String sender_screen_name;
-    private String recipient_screen_name;
-    private static final long serialVersionUID = -3253021825891789737L;
+    private int senderId;
+    private int recipientId;
+    private Date createdAt;
+    private String senderScreenName;
+    private String recipientScreenName;
+    private User sender;
+    private User recipient;
 
-    /*package*/DirectMessage(Response res) throws TwitterException {
-        super(res);
-        init(res.asJSONObject());
-    }
-    /*package*/DirectMessage(JSONObject json) throws TwitterException {
-        init(json);
-    }
-    private void init(JSONObject json) throws TwitterException{
-        id = getInt("id", json);
-        text = ParseUtil.getText("text", json);
-        sender_id = getInt("sender_id", json);
-        recipient_id = getInt("recipient_id", json);
-        created_at = getDate("created_at", json);
-        sender_screen_name = ParseUtil.getText("sender_screen_name", json);
-        recipient_screen_name = ParseUtil.getText("recipient_screen_name", json);
-        try {
-            sender = User.createFromJSONObject(json.getJSONObject("sender"));
-            recipient = User.createFromJSONObject(json.getJSONObject("recipient"));
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone);
-        }
-    }
+    private static final long serialVersionUID = -3253021825891789737L;
+    private RateLimitStatus rateLimitStatus;
 
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getText() {
         return text;
     }
 
+    public void setText(String text) {
+        this.text = text;
+    }
+
     public int getSenderId() {
-        return sender_id;
+        return senderId;
+    }
+
+    public void setSenderId(int sender_id) {
+        this.senderId = sender_id;
     }
 
     public int getRecipientId() {
-        return recipient_id;
+        return recipientId;
+    }
+
+    public void setRecipientId(int recipientId) {
+        this.recipientId = recipientId;
     }
 
     /**
@@ -91,44 +83,46 @@ public class DirectMessage extends TwitterResponseImpl implements java.io.Serial
      * @since Twitter4J 1.1.0
      */
     public Date getCreatedAt() {
-        return created_at;
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
     public String getSenderScreenName() {
-        return sender_screen_name;
+        return senderScreenName;
+    }
+
+    public void setSenderScreenName(String senderScreenName) {
+        this.senderScreenName = senderScreenName;
     }
 
     public String getRecipientScreenName() {
-        return recipient_screen_name;
+        return recipientScreenName;
     }
 
-    private User sender;
+    public void setRecipientScreenName(String recipientScreenName) {
+        this.recipientScreenName = recipientScreenName;
+    }
+
 
     public User getSender() {
         return sender;
     }
 
-    private User recipient;
+    public void setSender(User sender) {
+        this.sender = sender;
+    }
 
     public User getRecipient() {
         return recipient;
     }
 
-    /*package*/ static ResponseList<DirectMessage> createDirectMessageList(Response res) throws TwitterException {
-        try {
-            JSONArray list = res.asJSONArray();
-            int size = list.length();
-            ResponseList<DirectMessage> directMessages = new ResponseList<DirectMessage>(size, res);
-            for (int i = 0; i < size; i++) {
-                directMessages.add(new DirectMessage(list.getJSONObject(i)));
-            }
-            return directMessages;
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone);
-        } catch (TwitterException te) {
-            throw te;
-        }
+    public void setRecipient(User recipient) {
+        this.recipient = recipient;
     }
+
 
     @Override
     public int hashCode() {
@@ -151,13 +145,22 @@ public class DirectMessage extends TwitterResponseImpl implements java.io.Serial
         return "DirectMessage{" +
                 "id=" + id +
                 ", text='" + text + '\'' +
-                ", sender_id=" + sender_id +
-                ", recipient_id=" + recipient_id +
-                ", created_at=" + created_at +
-                ", sender_screen_name='" + sender_screen_name + '\'' +
-                ", recipient_screen_name='" + recipient_screen_name + '\'' +
+                ", senderId=" + senderId +
+                ", recipientId=" + recipientId +
+                ", createdAt=" + createdAt +
+                ", senderScreenName='" + senderScreenName + '\'' +
+                ", recipientScreenName='" + recipientScreenName + '\'' +
                 ", sender=" + sender +
                 ", recipient=" + recipient +
+                ", rateLimitStatus=" + rateLimitStatus +
                 '}';
+    }
+
+    public RateLimitStatus getRateLimitStatus() {
+        return rateLimitStatus;
+    }
+
+    public void setRateLimitStatus(RateLimitStatus rateLimitStatus) {
+        this.rateLimitStatus = rateLimitStatus;
     }
 }

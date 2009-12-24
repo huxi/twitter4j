@@ -26,9 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.org.json.JSONException;
-import twitter4j.org.json.JSONObject;
-
 /**
  * A data class representing Treand.
  *
@@ -41,22 +38,24 @@ public class Trend implements java.io.Serializable{
     private String query = null;
     private static final long serialVersionUID = 1925956704460743946L;
 
-    public Trend(JSONObject json) throws JSONException {
-        this.name = json.getString("name");
-        if (!json.isNull("url")) {
-            this.url = json.getString("url");
-        }
-        if (!json.isNull("query")) {
-            this.query = json.getString("query");
-        }
-    }
-
     public String getName() {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getUrl() {
         return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
     }
 
     public String getQuery() {

@@ -26,11 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.http.Response;
-import twitter4j.org.json.JSONArray;
-import twitter4j.org.json.JSONException;
-import twitter4j.org.json.JSONObject;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -39,7 +34,7 @@ import java.net.URISyntaxException;
  * @author Dan Checkoway - dcheckoway at gmail.com
  * @see <a href="http://apiwiki.twitter.com/Twitter-REST-API-Method%3A-GET-list-id">REST API Documentation - Basic list information element</a>
  */
-public class UserList extends TwitterResponseImpl implements java.io.Serializable {
+public class UserList implements TwitterResponse {
 
     private int id;
     private String name;
@@ -52,40 +47,7 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
     private String mode;
     private User user;
     private static final long serialVersionUID = -6345893237975349030L;
-
-
-    /*package*/
-
-    UserList(Response res) throws TwitterException {
-        super(res);
-        init(res.asJSONObject());
-    }
-
-    /*package*/
-
-    UserList(JSONObject json) throws TwitterException {
-        super();
-        init(json);
-    }
-
-    private void init(JSONObject json) throws TwitterException {
-        try {
-            id = json.getInt("id");
-            name = json.getString("name");
-            fullName = json.getString("full_name");
-            slug = json.getString("slug");
-            description = json.getString("description");
-            subscriberCount = json.getInt("subscriber_count");
-            memberCount = json.getInt("member_count");
-            uri = json.getString("uri");
-            mode = json.getString("mode");
-            if (!json.isNull("user")) {
-                user = User.createFromJSONObject(json.getJSONObject("user"));
-            }
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone.getMessage() + ":" + json.toString(), jsone);
-        }
-    }
+    private RateLimitStatus rateLimitStatus;
 
     /**
      * Returns the id of the list
@@ -94,6 +56,10 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
      */
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     /**
@@ -105,6 +71,10 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     /**
      * Returns the full name of the list
      *
@@ -112,6 +82,10 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
      */
     public String getFullName() {
         return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     /**
@@ -123,6 +97,10 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
         return slug;
     }
 
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
+
     /**
      * Returns the description of the list
      *
@@ -130,6 +108,10 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
      */
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     /**
@@ -141,6 +123,10 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
         return subscriberCount;
     }
 
+    public void setSubscriberCount(int subscriberCount) {
+        this.subscriberCount = subscriberCount;
+    }
+
     /**
      * Returns the member count of the list
      *
@@ -148,6 +134,10 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
      */
     public int getMemberCount() {
         return memberCount;
+    }
+
+    public void setMemberCount(int memberCount) {
+        this.memberCount = memberCount;
     }
 
     /**
@@ -162,7 +152,11 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
             return null;
         }
     }
-        
+
+    public void setURI(String uri) {
+        this.uri = uri;
+    }
+
     /**
      * Returns the mode of the list
      *
@@ -171,7 +165,11 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
     public String getMode() {
         return mode;
     }
-        
+
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+
     /**
      * Returns the user of the list
      *
@@ -180,23 +178,11 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
     public User getUser() {
         return user;
     }
-    /*package*/ static PagableResponseList<UserList> createListList(Response res) throws TwitterException {
-        try {
-            JSONObject json = res.asJSONObject();
-            JSONArray list = json.getJSONArray("lists");
-            int size = list.length();
-            PagableResponseList<UserList> users =
-                    new PagableResponseList<UserList>(size, json, res);
-            for (int i = 0; i < size; i++) {
-                users.add(new UserList(list.getJSONObject(i)));
-            }
-            return users;
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone);
-        } catch (TwitterException te) {
-            throw te;
-        }
+
+    public void setUser(User user) {
+        this.user = user;
     }
+
 
     @Override
     public int hashCode() {
@@ -227,6 +213,15 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
                 ", uri='" + uri + '\'' +
                 ", mode='" + mode + '\'' +
                 ", user=" + user +
+                ", rateLimitStatus=" + rateLimitStatus +
                 '}';
+    }
+
+    public RateLimitStatus getRateLimitStatus() {
+        return rateLimitStatus;
+    }
+
+    public void setRateLimitStatus(RateLimitStatus rateLimitStatus) {
+        this.rateLimitStatus = rateLimitStatus;
     }
 }

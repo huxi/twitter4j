@@ -26,80 +26,61 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
-import twitter4j.http.Response;
-import twitter4j.org.json.JSONArray;
-import twitter4j.org.json.JSONException;
-import twitter4j.org.json.JSONObject;
-
 import java.util.Date;
-import static twitter4j.ParseUtil.*;
+
 /**
  * A data class representing a Saved Search
  *
  * @author Yusuke Yamamoto - yusuke at mac.com
  * @since Twitter4J 2.0.8
  */
-public class SavedSearch extends TwitterResponseImpl {
+public class SavedSearch implements TwitterResponse {
     private Date createdAt;
     private String query;
     private int position;
     private String name;
     private int id;
     private static final long serialVersionUID = 3083819860391598212L;
-
-    /*package*/ SavedSearch(Response res) throws TwitterException {
-        super(res);
-        init(res.asJSONObject());
-    }
-
-    /*package*/ SavedSearch(JSONObject savedSearch) throws TwitterException {
-        init(savedSearch);
-    }
-
-    /*package*/ static ResponseList<SavedSearch> createSavedSearchList(Response res) throws TwitterException {
-            JSONArray json = res.asJSONArray();
-            ResponseList<SavedSearch> savedSearches;
-            try {
-                savedSearches = new ResponseList<SavedSearch>(json.length(), res);
-                for(int i=0;i<json.length();i++){
-                    savedSearches.add(new SavedSearch(json.getJSONObject(i)));
-                }
-                return savedSearches;
-            } catch (JSONException jsone) {
-                throw new TwitterException(jsone.getMessage() + ":" + res.asString(), jsone);
-            }
-        }
-
-    private void init(JSONObject savedSearch) throws TwitterException {
-        try {
-            createdAt = parseDate(savedSearch.getString("created_at"), "EEE MMM dd HH:mm:ss z yyyy");
-            query = getString("query", savedSearch, true);
-            position = getInt("position", savedSearch);
-            name = getString("name", savedSearch, true);
-            id = getInt("id", savedSearch);
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone.getMessage() + ":" + savedSearch.toString(), jsone);
-        }
-    }
+    private RateLimitStatus rateLimitStatus;
 
     public Date getCreatedAt() {
         return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
     public String getQuery() {
         return query;
     }
 
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
     public int getPosition() {
         return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
     }
 
     public String getName() {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     @Override
@@ -136,6 +117,15 @@ public class SavedSearch extends TwitterResponseImpl {
                 ", position=" + position +
                 ", name='" + name + '\'' +
                 ", id=" + id +
+                ", rateLimitStatus=" + rateLimitStatus +
                 '}';
+    }
+
+    public RateLimitStatus getRateLimitStatus() {
+        return rateLimitStatus;
+    }
+
+    public void setRateLimitStatus(RateLimitStatus rateLimitStatus) {
+        this.rateLimitStatus = rateLimitStatus;
     }
 }
