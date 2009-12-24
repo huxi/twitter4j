@@ -130,7 +130,8 @@ public class Status  implements TwitterResponse {
 
 
     /**
-     * returns The geoLocation that this tweet refers to.
+     * Returns The location that this tweet refers to if available.
+     * @return returns The location that this tweet refers to if available (can be null)
      * @since Twitter4J 2.1.0
      * @return the GeoLocation or null if no location is available
      */

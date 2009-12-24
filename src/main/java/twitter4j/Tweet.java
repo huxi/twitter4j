@@ -34,6 +34,10 @@ import java.util.Date;
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
 public class Tweet implements Serializable {
+/*
+			"geo": null,
+
+ */
     private String text;
     private int toUserId = -1;
     private String toUser = null;
@@ -44,8 +48,9 @@ public class Tweet implements Serializable {
     private String source;
     private String profileImageUrl;
     private Date createdAt;
-    private static final long serialVersionUID = 4299736733993211587L;
 
+    private GeoLocation geoLocation = null;
+    private static final long serialVersionUID = 4299736733993211587L;
 
     /**
      * returns the text
@@ -170,29 +175,39 @@ public class Tweet implements Serializable {
         this.createdAt = createdAt;
     }
 
+    /**
+     * Returns The location that this tweet refers to if available.
+     * @return returns The location that this tweet refers to if available (can be null)
+     * @since Twitter4J 2.1.0
+     */
+    public GeoLocation getGeoLocation() {
+        return geoLocation;
+    }
+
+    public void setGeoLocation(GeoLocation geoLocation) {
+        this.geoLocation = geoLocation;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Tweet)) return false;
 
-        Tweet that = (Tweet) o;
+        Tweet tweet = (Tweet) o;
 
-        if (fromUserId != that.fromUserId) return false;
-        if (id != that.id) return false;
-        if (toUserId != that.toUserId) return false;
-        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null)
+        if (fromUserId != tweet.fromUserId) return false;
+        if (id != tweet.id) return false;
+        if (toUserId != tweet.toUserId) return false;
+        if (!createdAt.equals(tweet.createdAt)) return false;
+        if (!fromUser.equals(tweet.fromUser)) return false;
+        if (geoLocation != null ? !geoLocation.equals(tweet.geoLocation) : tweet.geoLocation != null)
             return false;
-        if (fromUser != null ? !fromUser.equals(that.fromUser) : that.fromUser != null)
+        if (isoLanguageCode != null ? !isoLanguageCode.equals(tweet.isoLanguageCode) : tweet.isoLanguageCode != null)
             return false;
-        if (isoLanguageCode != null ? !isoLanguageCode.equals(that.isoLanguageCode) : that.isoLanguageCode != null)
-            return false;
-        if (profileImageUrl != null ? !profileImageUrl.equals(that.profileImageUrl) : that.profileImageUrl != null)
-            return false;
-        if (source != null ? !source.equals(that.source) : that.source != null)
-            return false;
-        if (text != null ? !text.equals(that.text) : that.text != null)
-            return false;
-        if (toUser != null ? !toUser.equals(that.toUser) : that.toUser != null)
+        if (!profileImageUrl.equals(tweet.profileImageUrl)) return false;
+        if (!source.equals(tweet.source)) return false;
+        if (!text.equals(tweet.text)) return false;
+        if (toUser != null ? !toUser.equals(tweet.toUser) : tweet.toUser != null)
             return false;
 
         return true;
@@ -200,16 +215,17 @@ public class Tweet implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = text != null ? text.hashCode() : 0;
-        result = 31 * result + (int) (toUserId ^ (toUserId >>> 32));
+        int result = text.hashCode();
+        result = 31 * result + toUserId;
         result = 31 * result + (toUser != null ? toUser.hashCode() : 0);
-        result = 31 * result + (fromUser != null ? fromUser.hashCode() : 0);
+        result = 31 * result + fromUser.hashCode();
         result = 31 * result + (int) (id ^ (id >>> 32));
-        result = 31 * result + (int) (fromUserId ^ (fromUserId >>> 32));
+        result = 31 * result + fromUserId;
         result = 31 * result + (isoLanguageCode != null ? isoLanguageCode.hashCode() : 0);
-        result = 31 * result + (source != null ? source.hashCode() : 0);
-        result = 31 * result + (profileImageUrl != null ? profileImageUrl.hashCode() : 0);
-        result = 31 * result + (createdAt != null ? createdAt.hashCode() : 0);
+        result = 31 * result + source.hashCode();
+        result = 31 * result + profileImageUrl.hashCode();
+        result = 31 * result + createdAt.hashCode();
+        result = 31 * result + (geoLocation != null ? geoLocation.hashCode() : 0);
         return result;
     }
 
@@ -226,6 +242,7 @@ public class Tweet implements Serializable {
                 ", source='" + source + '\'' +
                 ", profileImageUrl='" + profileImageUrl + '\'' +
                 ", createdAt=" + createdAt +
+                ", geoLocation=" + geoLocation +
                 '}';
     }
 }

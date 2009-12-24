@@ -87,18 +87,8 @@ public final class TwitterTransport {
         } catch (JSONException jsone) {
             throw new TwitterException(jsone);
         }
-        try {
-            if (!json.isNull("geo")) {
-                String coordinates = json.getJSONObject("geo")
-                        .getString("coordinates");
-                coordinates = coordinates.substring(1, coordinates.length() - 1);
-                String[] point = coordinates.split(",");
-                result.setGeoLocation(new GeoLocation(Double.parseDouble(point[0]),
-                        Double.parseDouble(point[1])));
-            }
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone);
-        }
+        result.setGeoLocation(createGeoLocation(json));
+
         if (!json.isNull("retweeted_status")) {
             try {
                 result.setRetweetedStatus(createStatus(json.getJSONObject("retweeted_status")));
@@ -331,6 +321,8 @@ public final class TwitterTransport {
             result.setSource(getString("source", json, true));
             result.setProfileImageUrl(getString("profile_image_url", json, true));
             result.setCreatedAt(parseDate(json.getString("created_at"), "EEE, dd MMM yyyy HH:mm:ss z"));
+            result.setGeoLocation(createGeoLocation(json));
+
         } catch (JSONException jsone) {
             throw new TwitterException(jsone.getMessage() + ":" + json.toString(), jsone);
         }
@@ -561,4 +553,21 @@ public final class TwitterTransport {
     public static int createTrackLimitationNotice(JSONObject json) throws JSONException {
         return ParseUtil.getInt("track", json.getJSONObject("limit"));
     }
+
+    public static GeoLocation createGeoLocation(JSONObject json) throws TwitterException {
+        try {
+            if (!json.isNull("geo")) {
+                String coordinates = json.getJSONObject("geo")
+                        .getString("coordinates");
+                coordinates = coordinates.substring(1, coordinates.length() - 1);
+                String[] point = coordinates.split(",");
+                return new GeoLocation(Double.parseDouble(point[0]),
+                        Double.parseDouble(point[1]));
+            }
+        } catch (JSONException jsone) {
+            throw new TwitterException(jsone);
+        }
+        return null;
+    }
+
 }
