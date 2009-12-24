@@ -31,6 +31,7 @@ import twitter4j.org.json.JSONArray;
 import twitter4j.org.json.JSONException;
 import twitter4j.org.json.JSONObject;
 
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
@@ -48,92 +49,88 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
     private String screenName;
     private String location;
     private String description;
-    private String profileImageUrl;
     private String url;
     private boolean isProtected;
     private int followersCount;
 
-    private Date statusCreatedAt;
-    private long statusId = -1;
-    private String statusText = null;
-    private String statusSource = null;
-    private boolean statusTruncated = false;
-    private long statusInReplyToStatusId = -1;
-    private int statusInReplyToUserId = -1;
-    private boolean statusFavorited = false;
-    private String statusInReplyToScreenName = null;
+    private Status status;
 
-    private String profileBackgroundColor;
-    private String profileTextColor;
-    private String profileLinkColor;
-    private String profileSidebarFillColor;
-    private String profileSidebarBorderColor;
+    private Profile profile;
     private int friendsCount;
     private Date createdAt;
     private int favouritesCount;
     private int utcOffset;
     private String timeZone;
-    private String profileBackgroundImageUrl;
-    private String profileBackgroundTile;
     private int statusesCount;
     private boolean isGeoEnabled;
     private boolean isVerified;
     private static final long serialVersionUID = -6345893237975349030L;
 
+	public static User createFromResponseHeader(Response res) throws TwitterException
+	{
+        RateLimitStatus rateLimit = RateLimitStatus.createFromResponseHeader(res);
+        User result = createFromJSONObject(res.asJSONObject());
+        result.setRateLimitStatus(rateLimit);
+		return result;
+	}
 
-    /*package*/User(Response res) throws TwitterException {
-        super(res);
-        init(res.asJSONObject());
-    }
+	public static User createFromJSONObject(JSONObject json) throws TwitterException {
+		User result=new User();
+		try {
+			result.setId(json.getInt("id"));
+			result.setName(json.getString("name"));
+			result.setScreenName(json.getString("screen_name"));
+			result.setLocation(json.getString("location"));
+			result.setDescription(json.getString("description"));
+			result.setURL(json.getString("url"));
+			result.setProtected(json.getBoolean("protected"));
+			result.setGeoEnabled(json.getBoolean("geo_enabled"));
+			result.setVerified(json.getBoolean("verified"));
+			result.setFollowersCount(json.getInt("followers_count"));
 
-    /*package*/User(JSONObject json) throws TwitterException {
-        super();
-        init(json);
-    }
+            Profile profile = new Profile();
 
-    private void init(JSONObject json) throws TwitterException {
-        try {
-            id = json.getInt("id");
-            name = json.getString("name");
-            screenName = json.getString("screen_name");
-            location = json.getString("location");
-            description = json.getString("description");
-            profileImageUrl = json.getString("profile_image_url");
-            url = json.getString("url");
-            isProtected = json.getBoolean("protected");
-            isGeoEnabled = json.getBoolean("geo_enabled");
-            isVerified = json.getBoolean("verified");
-            followersCount = json.getInt("followers_count");
+            profile.setImageUrl(json.getString("profile_image_url"));
+			profile.setBackgroundColor(json.getString("profile_background_color"));
+			profile.setTextColor(json.getString("profile_text_color"));
+			profile.setLinkColor(json.getString("profile_link_color"));
+			profile.setSidebarFillColor(json.getString("profile_sidebar_fill_color"));
+			profile.setSidebarBorderColor(json.getString("profile_sidebar_border_color"));
+            profile.setBackgroundImageUrl(json.getString("profile_background_image_url"));
+            profile.setBackgroundTile(json.getString("profile_background_tile"));
 
-            profileBackgroundColor = json.getString("profile_background_color");
-            profileTextColor = json.getString("profile_text_color");
-            profileLinkColor = json.getString("profile_link_color");
-            profileSidebarFillColor = json.getString("profile_sidebar_fill_color");
-            profileSidebarBorderColor = json.getString("profile_sidebar_border_color");
-            friendsCount = json.getInt("friends_count");
-            createdAt = parseDate(json.getString("created_at"), "EEE MMM dd HH:mm:ss z yyyy");
-            favouritesCount = json.getInt("favourites_count");
-            utcOffset = getInt("utc_offset", json);
-            timeZone = json.getString("time_zone");
-            profileBackgroundImageUrl = json.getString("profile_background_image_url");
-            profileBackgroundTile = json.getString("profile_background_tile");
-            statusesCount = json.getInt("statuses_count");
-            if (!json.isNull("status")) {
-                JSONObject status = json.getJSONObject("status");
-                statusCreatedAt = parseDate(status.getString("created_at"), "EEE MMM dd HH:mm:ss z yyyy");
-                statusId = status.getLong("id");
-                statusText = status.getString("text");
-                statusSource = status.getString("source");
-                statusTruncated = status.getBoolean("truncated");
-                statusInReplyToStatusId = getLong("in_reply_to_status_id", status);
-                statusInReplyToUserId = getInt("in_reply_to_user_id", status);
-                statusFavorited = status.getBoolean("favorited");
-                statusInReplyToScreenName = status.getString("in_reply_to_screen_name");
-            }
-        } catch (JSONException jsone) {
-            throw new TwitterException(jsone.getMessage() + ":" + json.toString(), jsone);
-        }
-    }
+            result.setProfile(profile);
+
+			result.setFriendsCount(json.getInt("friends_count"));
+			result.setCreatedAt(parseDate(json.getString("created_at"), "EEE MMM dd HH:mm:ss z yyyy"));
+			result.setFavouritesCount(json.getInt("favourites_count"));
+			result.setUtcOffset(getInt("utc_offset", json));
+			result.setTimeZone(json.getString("time_zone"));
+			result.setStatusesCount(json.getInt("statuses_count"));
+			if (!json.isNull("status")) {
+				JSONObject status = json.getJSONObject("status");
+                result.setStatus(Status.createFromJSONObject(status));
+            /*
+				statusCreatedAt = parseDate(status.getString("created_at"), "EEE MMM dd HH:mm:ss z yyyy");
+				statusId = status.getLong("id");
+				statusText = status.getString("text");
+				statusSource = status.getString("source");
+				statusTruncated = status.getBoolean("truncated");
+				statusInReplyToStatusId = getLong("in_reply_to_status_id", status);
+				statusInReplyToUserId = getInt("in_reply_to_user_id", status);
+				statusFavorited = status.getBoolean("favorited");
+				statusInReplyToScreenName = status.getString("in_reply_to_screen_name");
+			*/
+			}
+		} catch (JSONException jsone) {
+			throw new TwitterException(jsone.getMessage() + ":" + json.toString(), jsone);
+		}
+		return result;
+	}
+
+	public User()
+	{}
+
 
     /**
      * Returns the id of the user
@@ -144,7 +141,12 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
         return id;
     }
 
-    /**
+	public void setId(int id)
+	{
+		this.id = id;
+	}
+
+	/**
      * Returns the name of the user
      *
      * @return the name of the user
@@ -153,7 +155,12 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
         return name;
     }
 
-    /**
+	public void setName(String name)
+	{
+		this.name = name;
+	}
+
+	/**
      * Returns the screen name of the user
      *
      * @return the screen name of the user
@@ -162,7 +169,12 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
         return screenName;
     }
 
-    /**
+	public void setScreenName(String screenName)
+	{
+		this.screenName = screenName;
+	}
+
+	/**
      * Returns the location of the user
      *
      * @return the location of the user
@@ -171,7 +183,12 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
         return location;
     }
 
-    /**
+	public void setLocation(String location)
+	{
+		this.location = location;
+	}
+
+	/**
      * Returns the description of the user
      *
      * @return the description of the user
@@ -180,18 +197,11 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
         return description;
     }
 
-    /**
-     * Returns the profile image url of the user
-     *
-     * @return the profile image url of the user
-     */
-    public URL getProfileImageURL() {
-        try {
-            return new URL(profileImageUrl);
-        } catch (MalformedURLException ex) {
-            return null;
-        }
-    }
+	public void setDescription(String description)
+	{
+		this.description = description;
+	}
+
 
     /**
      * Returns the url of the user
@@ -206,6 +216,10 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
         }
     }
 
+    public void setURL(String url) {
+        this.url = url;
+    }
+
     /**
      * Test if the user status is protected
      *
@@ -215,6 +229,9 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
         return isProtected;
     }
 
+    public void setProtected(boolean isProtected) {
+        this.isProtected = isProtected;
+    }
 
     /**
      * Returns the number of followers
@@ -226,6 +243,10 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
         return followersCount;
     }
 
+    public void setFollowersCount(int followersCount) {
+        this.followersCount = followersCount;
+    }
+
     /*package*/ static PagableResponseList<User> createPagableUserList(Response res) throws TwitterException {
         try {
             JSONObject json = res.asJSONObject();
@@ -234,7 +255,8 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
             PagableResponseList<User> users =
                     new PagableResponseList<User>(size, json, res);
             for (int i = 0; i < size; i++) {
-                users.add(new User(list.getJSONObject(i)));
+                //users.add(new User(list.getJSONObject(i)));
+                users.add(createFromJSONObject(list.getJSONObject(i)));
             }
             return users;
         } catch (JSONException jsone) {
@@ -250,7 +272,8 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
             ResponseList<User> users =
                     new ResponseList<User>(size, res);
             for (int i = 0; i < size; i++) {
-                users.add(new User(list.getJSONObject(i)));
+                //users.add(new User(list.getJSONObject(i)));
+                users.add(createFromJSONObject(list.getJSONObject(i)));
             }
             return users;
         } catch (JSONException jsone) {
@@ -261,134 +284,71 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
     }
 
     /**
-     * @return created_at or null if the user is protected
-     * @since Twitter4J 1.1.0
-     */
-    public Date getStatusCreatedAt() {
-        return statusCreatedAt;
-    }
-
-    /**
      *
-     * @return status id or -1 if the user is protected
+     * @return the Status or null if the user is protected
      */
-    public long getStatusId() {
-        return statusId;
+    public Status getStatus() {
+        return status;
     }
 
-    /**
-     *
-     * @return status text or null if the user is protected
-     */
-    public String getStatusText() {
-        return statusText;
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
-    /**
-     *
-     * @return source or null if the user is protected
-     * @since 1.1.4
-     */
-    public String getStatusSource() {
-        return statusSource;
+    public Profile getProfile() {
+        return profile;
     }
 
-    /**
-     *
-     * @return truncated or false if the user is protected
-     * @since 1.1.4
-     */
-    public boolean isStatusTruncated() {
-        return statusTruncated;
-    }
-
-    /**
-     *
-     * @return in_reply_to_status_id or -1 if the user is protected
-     * @since 1.1.4
-     */
-    public long getStatusInReplyToStatusId() {
-        return statusInReplyToStatusId;
-    }
-
-    /**
-     *
-     * @return in_reply_to_user_id or -1 if the user is protected
-     * @since 1.1.4
-     */
-    public int getStatusInReplyToUserId() {
-        return statusInReplyToUserId;
-    }
-
-    /**
-     *
-     * @return favorited or false if the user is protected
-     * @since 1.1.4
-     */
-    public boolean isStatusFavorited() {
-        return statusFavorited;
-    }
-
-    /**
-     *
-     * @return in_reply_to_screen_name or null if the user is protected
-     * @since 1.1.4
-     */
-
-    public String getStatusInReplyToScreenName() {
-        return -1 != statusInReplyToUserId ? statusInReplyToScreenName : null;
-    }
-
-        public String getProfileBackgroundColor() {
-        return profileBackgroundColor;
-    }
-
-    public String getProfileTextColor() {
-        return profileTextColor;
-    }
-
-    public String getProfileLinkColor() {
-        return profileLinkColor;
-    }
-
-    public String getProfileSidebarFillColor() {
-        return profileSidebarFillColor;
-    }
-
-    public String getProfileSidebarBorderColor() {
-        return profileSidebarBorderColor;
+    public void setProfile(Profile profile) {
+        this.profile = profile;
     }
 
     public int getFriendsCount() {
         return friendsCount;
     }
 
+    public void setFriendsCount(int friendsCount) {
+        this.friendsCount = friendsCount;
+    }
+
     public Date getCreatedAt() {
         return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
     public int getFavouritesCount() {
         return favouritesCount;
     }
 
+    public void setFavouritesCount(int favouritesCount) {
+        this.favouritesCount = favouritesCount;
+    }
+
     public int getUtcOffset() {
         return utcOffset;
+    }
+
+    public void setUtcOffset(int utcOffset) {
+        this.utcOffset = utcOffset;
     }
 
     public String getTimeZone() {
         return timeZone;
     }
 
-    public String getProfileBackgroundImageUrl() {
-        return profileBackgroundImageUrl;
-    }
-
-    public String getProfileBackgroundTile() {
-        return profileBackgroundTile;
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
     }
 
     public int getStatusesCount() {
         return statusesCount;
+    }
+
+    public void setStatusesCount(int statusesCount) {
+        this.statusesCount = statusesCount;
     }
 
     /**
@@ -400,6 +360,10 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
         return isGeoEnabled;
     }
 
+    public void setGeoEnabled(boolean geoEnabled) {
+        isGeoEnabled = geoEnabled;
+    }
+
     /**
      *
      * @return returns true if the user is a verified celebrity
@@ -407,6 +371,10 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
      */
     public boolean isVerified() {
         return isVerified;
+    }
+
+    public void setVerified(boolean verified) {
+        isVerified = verified;
     }
 
     @Override
@@ -433,34 +401,151 @@ public class User extends TwitterResponseImpl implements java.io.Serializable {
                 ", screenName='" + screenName + '\'' +
                 ", location='" + location + '\'' +
                 ", description='" + description + '\'' +
-                ", profileImageUrl='" + profileImageUrl + '\'' +
                 ", url='" + url + '\'' +
                 ", isProtected=" + isProtected +
                 ", followersCount=" + followersCount +
-                ", statusCreatedAt=" + statusCreatedAt +
-                ", statusId=" + statusId +
-                ", statusText='" + statusText + '\'' +
-                ", statusSource='" + statusSource + '\'' +
-                ", statusTruncated=" + statusTruncated +
-                ", statusInReplyToStatusId=" + statusInReplyToStatusId +
-                ", statusInReplyToUserId=" + statusInReplyToUserId +
-                ", statusFavorited=" + statusFavorited +
-                ", statusInReplyToScreenName='" + statusInReplyToScreenName + '\'' +
-                ", profileBackgroundColor='" + profileBackgroundColor + '\'' +
-                ", profileTextColor='" + profileTextColor + '\'' +
-                ", profileLinkColor='" + profileLinkColor + '\'' +
-                ", profileSidebarFillColor='" + profileSidebarFillColor + '\'' +
-                ", profileSidebarBorderColor='" + profileSidebarBorderColor + '\'' +
+                ", status=" + status +
+                ", profile='" + profile + '\'' +
                 ", friendsCount=" + friendsCount +
                 ", createdAt=" + createdAt +
                 ", favouritesCount=" + favouritesCount +
                 ", utcOffset=" + utcOffset +
                 ", timeZone='" + timeZone + '\'' +
-                ", profileBackgroundImageUrl='" + profileBackgroundImageUrl + '\'' +
-                ", profileBackgroundTile='" + profileBackgroundTile + '\'' +
                 ", statusesCount=" + statusesCount +
                 ", geoEnabled=" + isGeoEnabled +
                 ", verified=" + isVerified +
                 '}';
+    }
+
+    public static class Profile
+        implements Serializable
+    {
+        private String textColor;
+        private String linkColor;
+        private String imageUrl;
+        private String backgroundColor;
+        private String backgroundImageUrl;
+        private String backgroundTile;
+        private String sidebarFillColor;
+        private String sidebarBorderColor;
+        private static final long serialVersionUID = -4426066477774540374L;
+
+        public Profile() {
+        }
+
+        public String getImageUrl() {
+            return imageUrl;
+        }
+
+        public void setImageUrl(String imageUrl) {
+            this.imageUrl = imageUrl;
+        }
+
+        public String getBackgroundColor() {
+            return backgroundColor;
+        }
+
+        public void setBackgroundColor(String backgroundColor) {
+            this.backgroundColor = backgroundColor;
+        }
+
+        public String getBackgroundImageUrl() {
+            return backgroundImageUrl;
+        }
+
+        public void setBackgroundImageUrl(String backgroundImageUrl) {
+            this.backgroundImageUrl = backgroundImageUrl;
+        }
+
+        public String getBackgroundTile() {
+            return backgroundTile;
+        }
+
+        public void setBackgroundTile(String backgroundTile) {
+            this.backgroundTile = backgroundTile;
+        }
+
+        public String getLinkColor() {
+            return linkColor;
+        }
+
+        public void setLinkColor(String linkColor) {
+            this.linkColor = linkColor;
+        }
+
+        public String getSidebarBorderColor() {
+            return sidebarBorderColor;
+        }
+
+        public void setSidebarBorderColor(String sidebarBorderColor) {
+            this.sidebarBorderColor = sidebarBorderColor;
+        }
+
+        public String getSidebarFillColor() {
+            return sidebarFillColor;
+        }
+
+        public void setSidebarFillColor(String sidebarFillColor) {
+            this.sidebarFillColor = sidebarFillColor;
+        }
+
+        public String getTextColor() {
+            return textColor;
+        }
+
+        public void setTextColor(String textColor) {
+            this.textColor = textColor;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Profile profile = (Profile) o;
+
+            if (backgroundColor != null ? !backgroundColor.equals(profile.backgroundColor) : profile.backgroundColor != null)
+                return false;
+            if (backgroundImageUrl != null ? !backgroundImageUrl.equals(profile.backgroundImageUrl) : profile.backgroundImageUrl != null)
+                return false;
+            if (backgroundTile != null ? !backgroundTile.equals(profile.backgroundTile) : profile.backgroundTile != null)
+                return false;
+            if (imageUrl != null ? !imageUrl.equals(profile.imageUrl) : profile.imageUrl != null) return false;
+            if (linkColor != null ? !linkColor.equals(profile.linkColor) : profile.linkColor != null) return false;
+            if (sidebarBorderColor != null ? !sidebarBorderColor.equals(profile.sidebarBorderColor) : profile.sidebarBorderColor != null)
+                return false;
+            if (sidebarFillColor != null ? !sidebarFillColor.equals(profile.sidebarFillColor) : profile.sidebarFillColor != null)
+                return false;
+            if (textColor != null ? !textColor.equals(profile.textColor) : profile.textColor != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = textColor != null ? textColor.hashCode() : 0;
+            result = 31 * result + (linkColor != null ? linkColor.hashCode() : 0);
+            result = 31 * result + (imageUrl != null ? imageUrl.hashCode() : 0);
+            result = 31 * result + (backgroundColor != null ? backgroundColor.hashCode() : 0);
+            result = 31 * result + (backgroundImageUrl != null ? backgroundImageUrl.hashCode() : 0);
+            result = 31 * result + (backgroundTile != null ? backgroundTile.hashCode() : 0);
+            result = 31 * result + (sidebarFillColor != null ? sidebarFillColor.hashCode() : 0);
+            result = 31 * result + (sidebarBorderColor != null ? sidebarBorderColor.hashCode() : 0);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Profile{" +
+                    "backgroundColor='" + backgroundColor + '\'' +
+                    ", textColor='" + textColor + '\'' +
+                    ", linkColor='" + linkColor + '\'' +
+                    ", imageUrl='" + imageUrl + '\'' +
+                    ", backgroundImageUrl='" + backgroundImageUrl + '\'' +
+                    ", backgroundTile='" + backgroundTile + '\'' +
+                    ", sidebarFillColor='" + sidebarFillColor + '\'' +
+                    ", sidebarBorderColor='" + sidebarBorderColor + '\'' +
+                    '}';
+        }
     }
 }

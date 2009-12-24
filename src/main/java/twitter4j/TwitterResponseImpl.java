@@ -54,4 +54,8 @@ public class TwitterResponseImpl implements java.io.Serializable, TwitterRespons
     public RateLimitStatus getRateLimitStatus() {
         return rateLimitStatus;
     }
+
+    public void setRateLimitStatus(RateLimitStatus rateLimitStatus) {
+        this.rateLimitStatus = rateLimitStatus;
+    }
 }

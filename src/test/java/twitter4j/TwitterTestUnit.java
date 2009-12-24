@@ -92,7 +92,6 @@ public class TwitterTestUnit extends TwitterTestBase {
         assertEquals(id1.name, user.getScreenName());
         assertNotNull(user.getLocation());
         assertNotNull(user.getDescription());
-        assertNotNull(user.getProfileImageURL());
         assertNotNull(user.getURL());
         assertFalse(user.isProtected());
 
@@ -101,18 +100,39 @@ public class TwitterTestUnit extends TwitterTestBase {
         assertTrue(0 <= user.getFriendsCount());
         assertNotNull(user.getCreatedAt());
         assertNotNull(user.getTimeZone());
+        assertTrue(0 <= user.getStatusesCount());
+
+        User.Profile profile = user.getProfile();
+
+        assertNotNull(profile.getImageUrl());
+        assertNotNull(profile.getBackgroundImageUrl());
+        assertNotNull(profile.getBackgroundTile());
+        assertNotNull(profile.getBackgroundColor());
+        assertNotNull(profile.getTextColor());
+        assertNotNull(profile.getLinkColor());
+        assertNotNull(profile.getSidebarBorderColor());
+        assertNotNull(profile.getSidebarFillColor());
+        /*
+        assertNotNull(user.getProfileImageURL());
         assertNotNull(user.getProfileBackgroundImageUrl());
         assertNotNull(user.getProfileBackgroundTile());
-
-        assertTrue(0 <= user.getStatusesCount());
         assertNotNull(user.getProfileBackgroundColor());
         assertNotNull(user.getProfileTextColor());
         assertNotNull(user.getProfileLinkColor());
         assertNotNull(user.getProfileSidebarBorderColor());
         assertNotNull(user.getProfileSidebarFillColor());
         assertNotNull(user.getProfileTextColor());
+        */
 
         assertTrue(1 < user.getFollowersCount());
+        Status status = user.getStatus();
+        assertNotNull(status.getCreatedAt());
+        assertNotNull(status.getText());
+        assertNotNull(status.getSource());
+        assertFalse(status.isFavorited());
+        assertNull(status.getInReplyTo());
+
+        /*
         assertNotNull(user.getStatusCreatedAt());
         assertNotNull(user.getStatusText());
         assertNotNull(user.getStatusSource());
@@ -121,6 +141,7 @@ public class TwitterTestUnit extends TwitterTestBase {
         assertEquals(-1, user.getStatusInReplyToUserId());
         assertFalse(user.isStatusFavorited());
         assertNull(user.getStatusInReplyToScreenName());
+        */
 
         //test case for TFJ-91 null pointer exception getting user detail on users with no statuses
         //http://yusuke.homeip.net/jira/browse/TFJ-91
@@ -294,8 +315,9 @@ public class TwitterTestUnit extends TwitterTestBase {
         assertEquals(date, status.getText());
         Status status2 = twitterAPI2.updateStatus("@" + id1.name + " " + date, status.getId());
         assertEquals("@" + id1.name + " " + date, status2.getText());
-        assertEquals(status.getId(), status2.getInReplyToStatusId());
-        assertEquals(twitterAPI1.verifyCredentials().getId(), status2.getInReplyToUserId());
+        Status.InReplyTo reply = status2.getInReplyTo();
+        assertEquals(status.getId(), reply.getStatusId());
+        assertEquals(twitterAPI1.verifyCredentials().getId(), reply.getUserId());
         twitterAPI1.destroyStatus(status.getId());
     }
 
@@ -483,42 +505,50 @@ public class TwitterTestUnit extends TwitterTestBase {
         assertFalse(twitterAPI1.existsFriendship(id1.name, "al3x"));
 
         User eu;
+        User.Profile profile;
+
         eu = twitterAPI1.updateProfileColors("f00", "f0f", "0ff", "0f0", "f0f");
-        assertEquals("f00", eu.getProfileBackgroundColor());
-        assertEquals("f0f", eu.getProfileTextColor());
-        assertEquals("0ff", eu.getProfileLinkColor());
-        assertEquals("0f0", eu.getProfileSidebarFillColor());
-        assertEquals("f0f", eu.getProfileSidebarBorderColor());
+        profile = eu.getProfile();
+        assertEquals("f00", profile.getBackgroundColor());
+        assertEquals("f0f", profile.getTextColor());
+        assertEquals("0ff", profile.getLinkColor());
+        assertEquals("0f0", profile.getSidebarFillColor());
+        assertEquals("f0f", profile.getSidebarBorderColor());
         eu = twitterAPI1.updateProfileColors("f0f", "f00", "f0f", "0ff", "0f0");
-        assertEquals("f0f", eu.getProfileBackgroundColor());
-        assertEquals("f00", eu.getProfileTextColor());
-        assertEquals("f0f", eu.getProfileLinkColor());
-        assertEquals("0ff", eu.getProfileSidebarFillColor());
-        assertEquals("0f0", eu.getProfileSidebarBorderColor());
+        profile = eu.getProfile();
+        assertEquals("f0f", profile.getBackgroundColor());
+        assertEquals("f00", profile.getTextColor());
+        assertEquals("f0f", profile.getLinkColor());
+        assertEquals("0ff", profile.getSidebarFillColor());
+        assertEquals("0f0", profile.getSidebarBorderColor());
         eu = twitterAPI1.updateProfileColors("87bc44", "9ae4e8", "000000", "0000ff", "e0ff92");
-        assertEquals("87bc44", eu.getProfileBackgroundColor());
-        assertEquals("9ae4e8", eu.getProfileTextColor());
-        assertEquals("000000", eu.getProfileLinkColor());
-        assertEquals("0000ff", eu.getProfileSidebarFillColor());
-        assertEquals("e0ff92", eu.getProfileSidebarBorderColor());
+        profile = eu.getProfile();
+        assertEquals("87bc44", profile.getBackgroundColor());
+        assertEquals("9ae4e8", profile.getTextColor());
+        assertEquals("000000", profile.getLinkColor());
+        assertEquals("0000ff", profile.getSidebarFillColor());
+        assertEquals("e0ff92", profile.getSidebarBorderColor());
         eu = twitterAPI1.updateProfileColors("f0f", null, "f0f", null, "0f0");
-        assertEquals("f0f", eu.getProfileBackgroundColor());
-        assertEquals("9ae4e8", eu.getProfileTextColor());
-        assertEquals("f0f", eu.getProfileLinkColor());
-        assertEquals("0000ff", eu.getProfileSidebarFillColor());
-        assertEquals("0f0", eu.getProfileSidebarBorderColor());
+        profile = eu.getProfile();
+        assertEquals("f0f", profile.getBackgroundColor());
+        assertEquals("9ae4e8", profile.getTextColor());
+        assertEquals("f0f", profile.getLinkColor());
+        assertEquals("0000ff", profile.getSidebarFillColor());
+        assertEquals("0f0", profile.getSidebarBorderColor());
         eu = twitterAPI1.updateProfileColors(null, "f00", null, "0ff", null);
-        assertEquals("f0f", eu.getProfileBackgroundColor());
-        assertEquals("f00", eu.getProfileTextColor());
-        assertEquals("f0f", eu.getProfileLinkColor());
-        assertEquals("0ff", eu.getProfileSidebarFillColor());
-        assertEquals("0f0", eu.getProfileSidebarBorderColor());
+        profile = eu.getProfile();
+        assertEquals("f0f", profile.getBackgroundColor());
+        assertEquals("f00", profile.getTextColor());
+        assertEquals("f0f", profile.getLinkColor());
+        assertEquals("0ff", profile.getSidebarFillColor());
+        assertEquals("0f0", profile.getSidebarBorderColor());
         eu = twitterAPI1.updateProfileColors("9ae4e8", "000000", "0000ff", "e0ff92", "87bc44");
-        assertEquals("9ae4e8", eu.getProfileBackgroundColor());
-        assertEquals("000000", eu.getProfileTextColor());
-        assertEquals("0000ff", eu.getProfileLinkColor());
-        assertEquals("e0ff92", eu.getProfileSidebarFillColor());
-        assertEquals("87bc44", eu.getProfileSidebarBorderColor());
+        profile = eu.getProfile();
+        assertEquals("9ae4e8", profile.getBackgroundColor());
+        assertEquals("000000", profile.getTextColor());
+        assertEquals("0000ff", profile.getLinkColor());
+        assertEquals("e0ff92", profile.getSidebarFillColor());
+        assertEquals("87bc44", profile.getSidebarBorderColor());
     }
 
     public void testAccountProfileImageUpdates() throws Exception {

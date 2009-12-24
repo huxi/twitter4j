@@ -30,7 +30,6 @@ import twitter4j.http.HttpClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Date;
@@ -79,14 +78,13 @@ public class DAOTest extends TwitterTestBase {
     public void testUserAsJSON() throws Exception {
         // single User
         HttpClient http = new HttpClient();
-        User user = new User(http.get("http://yusuke.homeip.net/twitter4j/en/testcases/users/show/twit4j.json"));
+        User user = User.createFromResponseHeader(http.get("http://yusuke.homeip.net/twitter4j/en/testcases/users/show/twit4j.json"));
         assertTrue(user.isGeoEnabled());
         assertFalse(user.isVerified());
         assertEquals(id1.name, user.getName());
         assertEquals(id1.name, user.getScreenName());
         assertNotNull(user.getLocation());
         assertNotNull(user.getDescription());
-        assertNotNull(user.getProfileImageURL());
         assertNotNull(user.getURL());
         assertFalse(user.isProtected());
 
@@ -95,18 +93,37 @@ public class DAOTest extends TwitterTestBase {
         assertTrue(0 <= user.getFriendsCount());
         assertNotNull(user.getCreatedAt());
         assertNotNull(user.getTimeZone());
+        assertTrue(0 <= user.getStatusesCount());
+
+        User.Profile profile = user.getProfile();
+        assertNotNull(profile.getImageUrl());
+        assertNotNull(profile.getBackgroundImageUrl());
+        assertNotNull(profile.getBackgroundTile());
+        assertNotNull(profile.getBackgroundColor());
+        assertNotNull(profile.getTextColor());
+        assertNotNull(profile.getLinkColor());
+        assertNotNull(profile.getSidebarBorderColor());
+        assertNotNull(profile.getSidebarFillColor());
+        /*
+        assertNotNull(user.getProfileImageURL());
         assertNotNull(user.getProfileBackgroundImageUrl());
         assertNotNull(user.getProfileBackgroundTile());
-
-        assertTrue(0 <= user.getStatusesCount());
         assertNotNull(user.getProfileBackgroundColor());
         assertNotNull(user.getProfileTextColor());
         assertNotNull(user.getProfileLinkColor());
         assertNotNull(user.getProfileSidebarBorderColor());
         assertNotNull(user.getProfileSidebarFillColor());
         assertNotNull(user.getProfileTextColor());
+        */
 
         assertTrue(1 < user.getFollowersCount());
+        Status status = user.getStatus();
+        assertNotNull(status.getCreatedAt());
+        assertNotNull(status.getText());
+        assertNotNull(status.getSource());
+        assertFalse(status.isFavorited());
+        assertNull(status.getInReplyTo());
+        /*
         assertNotNull(user.getStatusCreatedAt());
         assertNotNull(user.getStatusText());
         assertNotNull(user.getStatusSource());
@@ -115,6 +132,7 @@ public class DAOTest extends TwitterTestBase {
         assertEquals(-1, user.getStatusInReplyToUserId());
         assertFalse(user.isStatusFavorited());
         assertNull(user.getStatusInReplyToScreenName());
+        */
         assertDeserializedFormIsEqual(user);
 
         List<User> users;
@@ -132,9 +150,10 @@ public class DAOTest extends TwitterTestBase {
         Status status = statuses.get(0);
         assertEquals(new Date(1259041785000l), status.getCreatedAt());
         assertEquals(6000554383l, status.getId());
-        assertEquals("G_Shock22", status.getInReplyToScreenName());
-        assertEquals(6000444309l, status.getInReplyToStatusId());
-        assertEquals(20159829, status.getInReplyToUserId());
+        Status.InReplyTo reply=status.getInReplyTo();
+        assertEquals("G_Shock22", reply.getUserScreenName());
+        assertEquals(6000444309l, reply.getStatusId());
+        assertEquals(20159829, reply.getUserId());
         assertNull(status.getGeoLocation());
         assertEquals("web", status.getSource());
         assertEquals("@G_Shock22 I smelled a roast session coming when yu said that shyt about @2koolNicia lol....", status.getText());
@@ -146,12 +165,14 @@ public class DAOTest extends TwitterTestBase {
     public void testRetweetStatusAsJSON() throws Exception {
         // single Status
         HttpClient http = new HttpClient();
-        Status status = new Status(http.get("http://yusuke.homeip.net/twitter4j/en/testcases/statuses/retweet/6010814202.json"));
+        Status status = Status.createFromResponseHeader(http.get("http://yusuke.homeip.net/twitter4j/en/testcases/statuses/retweet/6010814202.json"));
         assertEquals(new Date(1259078050000l), status.getCreatedAt());
         assertEquals(6011259778l, status.getId());
-        assertEquals(null, status.getInReplyToScreenName());
-        assertEquals(-1l, status.getInReplyToStatusId());
-        assertEquals(-1, status.getInReplyToUserId());
+        Status.InReplyTo reply=status.getInReplyTo();
+        assertEquals(null, reply);
+        //assertEquals(null, status.getInReplyToScreenName());
+        //assertEquals(-1l, status.getInReplyToStatusId());
+        //assertEquals(-1, status.getInReplyToUserId());
         assertNull(status.getGeoLocation());
         assertEquals("<a href=\"http://apiwiki.twitter.com/\" rel=\"nofollow\">API</a>", status.getSource());
         assertEquals("RT @yusukey: この前取材受けた奴 -> 次世代のシステム環境を見据えたアプリケーションサーバー製品の選択 ITpro: http://special.nikkeibp.co.jp/ts/article/0iaa/104388/", status.getText());

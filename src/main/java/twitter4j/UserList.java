@@ -80,7 +80,7 @@ public class UserList extends TwitterResponseImpl implements java.io.Serializabl
             uri = json.getString("uri");
             mode = json.getString("mode");
             if (!json.isNull("user")) {
-                user = new User(json.getJSONObject("user"));
+                user = User.createFromJSONObject(json.getJSONObject("user"));
             }
         } catch (JSONException jsone) {
             throw new TwitterException(jsone.getMessage() + ":" + json.toString(), jsone);

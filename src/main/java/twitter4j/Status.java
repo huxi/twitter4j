@@ -31,6 +31,7 @@ import twitter4j.org.json.JSONArray;
 import twitter4j.org.json.JSONException;
 import twitter4j.org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.Date;
 import static twitter4j.ParseUtil.*;
 
@@ -44,39 +45,44 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
     private long id;
     private String text;
     private String source;
-    private boolean isTruncated;
-    private long inReplyToStatusId;
-    private int inReplyToUserId;
-    private boolean isFavorited;
-    private String inReplyToScreenName;
-    private GeoLocation location = null;
+    private boolean truncated;
+    private boolean favorited;
+    private GeoLocation geoLocation = null;
+    private InReplyTo inReplyTo;
 
     private Status retweetedStatus;
     private static final long serialVersionUID = 1608000492860584608L;
 
-    /*package*/Status(Response res) throws TwitterException {
-        super(res);
-        init(res.asJSONObject());
+
+    public static Status createFromResponseHeader(Response res) throws TwitterException
+    {
+        RateLimitStatus rateLimit = RateLimitStatus.createFromResponseHeader(res);
+        Status result = createFromJSONObject(res.asJSONObject());
+        result.setRateLimitStatus(rateLimit);
+		return result;
     }
 
-    /*package*/ Status(JSONObject json) throws TwitterException, JSONException {
-        super();
-        init(json);
-    }
+    public static Status createFromJSONObject(JSONObject json) throws TwitterException {
+        Status result=new Status();
+        result.setId(getLong("id", json));
+        result.setText(ParseUtil.getText("text", json));
+        result.setSource(ParseUtil.getText("source", json));
+        result.setCreatedAt(getDate("created_at", json));
+        result.setTruncated(getBoolean("truncated", json));
+        result.setFavorited(getBoolean("favorited", json));
 
-    private void init(JSONObject json) throws TwitterException {
-        id = getLong("id", json);
-        text = ParseUtil.getText("text", json);
-        source = ParseUtil.getText("source", json);
-        createdAt = getDate("created_at", json);
-        isTruncated = getBoolean("truncated", json);
-        inReplyToStatusId = getLong("in_reply_to_status_id", json);
-        inReplyToUserId = getInt("in_reply_to_user_id", json);
-        isFavorited = getBoolean("favorited", json);
-        inReplyToScreenName = ParseUtil.getText("in_reply_to_screen_name", json);
+        long replyToStatusId = getLong("in_reply_to_status_id", json);
+        if(replyToStatusId >= 0)
+        {
+            InReplyTo reply = new InReplyTo();
+            reply.setStatusId(replyToStatusId);
+            reply.setUserId(getInt("in_reply_to_user_id", json));
+            reply.setUserScreenName(ParseUtil.getText("in_reply_to_screen_name", json));
+            result.setInReplyTo(reply);
+        }
         try {
             if (!json.isNull("user")) {
-                user = new User(json.getJSONObject("user"));
+                result.setUser(User.createFromJSONObject(json.getJSONObject("user")));
             }
         } catch (JSONException jsone) {
             throw new TwitterException(jsone);
@@ -87,19 +93,23 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
                         .getString("coordinates");
                 coordinates = coordinates.substring(1, coordinates.length() - 1);
                 String[] point = coordinates.split(",");
-                location = new GeoLocation(Double.parseDouble(point[0]),
-                        Double.parseDouble(point[1]));
+                result.setGeoLocation(new GeoLocation(Double.parseDouble(point[0]),
+                        Double.parseDouble(point[1])));
             }
         } catch (JSONException jsone) {
             throw new TwitterException(jsone);
         }
         if (!json.isNull("retweeted_status")) {
             try {
-                retweetedStatus = new Status(json.getJSONObject("retweeted_status"));
+                result.setRetweetedStatus(createFromJSONObject(json.getJSONObject("retweeted_status")));
             } catch (JSONException ignore) {
             }
         }
+        return result;
     }
+
+    public Status()
+    {}
 
     /**
      * Return the created_at
@@ -112,6 +122,10 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
         return this.createdAt;
     }
 
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
     /**
      * Returns the id of the status
      *
@@ -121,6 +135,10 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
         return this.id;
     }
 
+    public void setId(long id) {
+        this.id = id;
+    }
+
     /**
      * Returns the text of the status
      *
@@ -128,6 +146,10 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
      */
     public String getText() {
         return this.text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 
     /**
@@ -140,6 +162,9 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
         return this.source;
     }
 
+    public void setSource(String source) {
+        this.source = source;
+    }
 
     /**
      * Test if the status is truncated
@@ -148,45 +173,33 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
      * @since Twitter4J 1.0.4
      */
     public boolean isTruncated() {
-        return isTruncated;
+        return truncated;
     }
 
-    /**
-     * Returns the in_reply_tostatus_id
-     *
-     * @return the in_reply_tostatus_id
-     * @since Twitter4J 1.0.4
-     */
-    public long getInReplyToStatusId() {
-        return inReplyToStatusId;
+    public void setTruncated(boolean truncated) {
+        this.truncated = truncated;
     }
 
-    /**
-     * Returns the in_reply_user_id
-     *
-     * @return the in_reply_tostatus_id
-     * @since Twitter4J 1.0.4
-     */
-    public int getInReplyToUserId() {
-        return inReplyToUserId;
+    public InReplyTo getInReplyTo() {
+        return inReplyTo;
     }
 
-    /**
-     * Returns the in_reply_to_screen_name
-     *
-     * @return the in_in_reply_to_screen_name
-     * @since Twitter4J 2.0.4
-     */
-    public String getInReplyToScreenName() {
-        return inReplyToScreenName;
+    public void setInReplyTo(InReplyTo inReplyTo) {
+        this.inReplyTo = inReplyTo;
     }
 
+
     /**
-     * returns The location that this tweet refers to.
+     * returns The geoLocation that this tweet refers to.
      * @since Twitter4J 2.1.0
+     * @return the GeoLocation or null if no location is available
      */
     public GeoLocation getGeoLocation(){
-        return location;
+        return geoLocation;
+    }
+
+    public void setGeoLocation(GeoLocation geoLocation) {
+        this.geoLocation = geoLocation;
     }
 
     /**
@@ -196,9 +209,12 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
      * @since Twitter4J 1.0.4
      */
     public boolean isFavorited() {
-        return isFavorited;
+        return favorited;
     }
 
+    public void setFavorited(boolean favorited) {
+        this.favorited = favorited;
+    }
 
     private User user = null;
 
@@ -211,20 +227,35 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
         return user;
     }
 
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     /**
      *
      * @since Twitter4J 2.0.10
+     * @return true if this is a retweet.
      */
     public boolean isRetweet(){
         return null != retweetedStatus;
     }
 
+    public boolean isInReply()
+    {
+        return inReplyTo != null;
+    }
+
     /**
      *
      * @since Twitter4J 2.1.0
+     * @return the retweeted status or null if this isn't a retweet.
      */
     public Status getRetweetedStatus() {
         return retweetedStatus;
+    }
+
+    public void setRetweetedStatus(Status retweetedStatus) {
+        this.retweetedStatus = retweetedStatus;
     }
 
     /*package*/ static ResponseList<Status> createStatusList(Response res) throws TwitterException {
@@ -233,13 +264,11 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
             int size = list.length();
             ResponseList<Status> statuses = new ResponseList<Status>(size, res);
             for (int i = 0; i < size; i++) {
-                statuses.add(new Status(list.getJSONObject(i)));
+                statuses.add(createFromJSONObject(list.getJSONObject(i)));
             }
             return statuses;
         } catch (JSONException jsone) {
             throw new TwitterException(jsone);
-        } catch (TwitterException te) {
-            throw te;
         }
     }
 
@@ -267,14 +296,77 @@ public class Status extends TwitterResponseImpl implements java.io.Serializable 
                 ", id=" + id +
                 ", text='" + text + '\'' +
                 ", source='" + source + '\'' +
-                ", isTruncated=" + isTruncated +
-                ", inReplyToStatusId=" + inReplyToStatusId +
-                ", inReplyToUserId=" + inReplyToUserId +
-                ", isFavorited=" + isFavorited +
-                ", inReplyToScreenName='" + inReplyToScreenName + '\'' +
-                ", location=" + location +
+                ", truncated=" + truncated +
+                ", inReplyTo=" + inReplyTo +
+                ", favorited=" + favorited +
+                ", geoLocation=" + geoLocation +
                 ", retweetedStatus=" + retweetedStatus +
                 ", user=" + user +
                 '}';
+    }
+
+    public static class InReplyTo
+        implements Serializable
+    {
+        private long statusId;
+        private int userId;
+        private String userScreenName;
+        private static final long serialVersionUID = 6770645822342779430L;
+
+        public long getStatusId() {
+            return statusId;
+        }
+
+        public void setStatusId(long statusId) {
+            this.statusId = statusId;
+        }
+
+        public int getUserId() {
+            return userId;
+        }
+
+        public void setUserId(int userId) {
+            this.userId = userId;
+        }
+
+        public String getUserScreenName() {
+            return userScreenName;
+        }
+
+        public void setUserScreenName(String userScreenName) {
+            this.userScreenName = userScreenName;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            InReplyTo inReplyTo = (InReplyTo) o;
+
+            if (statusId != inReplyTo.statusId) return false;
+            if (userId != inReplyTo.userId) return false;
+            if (userScreenName != null ? !userScreenName.equals(inReplyTo.userScreenName) : inReplyTo.userScreenName != null)
+                return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = (int) (statusId ^ (statusId >>> 32));
+            result = 31 * result + userId;
+            result = 31 * result + (userScreenName != null ? userScreenName.hashCode() : 0);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "InReplyTo{" +
+                    "statusId=" + statusId +
+                    ", userId=" + userId +
+                    ", userScreenName='" + userScreenName + '\'' +
+                    '}';
+        }
     }
 }

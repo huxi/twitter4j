@@ -628,14 +628,14 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public Status showStatus(long id) throws TwitterException {
-        return new Status(get(getBaseURL() + "statuses/show/" + id + ".json", false));
+        return Status.createFromResponseHeader(get(getBaseURL() + "statuses/show/" + id + ".json", false));
     }
 
     /**
      * {@inheritDoc}
      */
     public Status updateStatus(String status) throws TwitterException {
-        return new Status(http.post(getBaseURL() + "statuses/update.json",
+        return Status.createFromResponseHeader(http.post(getBaseURL() + "statuses/update.json",
                 new PostParameter[]{new PostParameter("status", status), new PostParameter("source", source)}, true));
     }
 
@@ -643,7 +643,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public Status updateStatus(String status, GeoLocation location) throws TwitterException {
-        return new Status(http.post(getBaseURL() + "statuses/update.json",
+        return Status.createFromResponseHeader(http.post(getBaseURL() + "statuses/update.json",
                 new PostParameter[]{new PostParameter("status", status),
                         new PostParameter("lat", location.getLatitude()),
                         new PostParameter("long", location.getLongitude()),
@@ -654,7 +654,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public Status updateStatus(String status, long inReplyToStatusId) throws TwitterException {
-        return new Status(http.post(getBaseURL() + "statuses/update.json",
+        return Status.createFromResponseHeader(http.post(getBaseURL() + "statuses/update.json",
                 new PostParameter[]{new PostParameter("status", status), new PostParameter("in_reply_to_status_id", String.valueOf(inReplyToStatusId)), new PostParameter("source", source)}, true));
     }
 
@@ -663,7 +663,7 @@ public class Twitter extends TwitterSupport
      */
     public Status updateStatus(String status, long inReplyToStatusId
             , GeoLocation location) throws TwitterException {
-        return new Status(http.post(getBaseURL() + "statuses/update.json",
+        return Status.createFromResponseHeader(http.post(getBaseURL() + "statuses/update.json",
                 new PostParameter[]{new PostParameter("status", status),
                         new PostParameter("lat", location.getLatitude()),
                         new PostParameter("long", location.getLongitude()),
@@ -676,7 +676,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public Status destroyStatus(long statusId) throws TwitterException {
-        return new Status(http.post(getBaseURL() + "statuses/destroy/" + statusId + ".json",
+        return Status.createFromResponseHeader(http.post(getBaseURL() + "statuses/destroy/" + statusId + ".json",
                 new PostParameter[0], true));
     }
 
@@ -684,7 +684,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public Status retweetStatus(long statusId) throws TwitterException {
-        return new Status(http.post(getBaseURL() + "statuses/retweet/" + statusId + ".json",
+        return Status.createFromResponseHeader(http.post(getBaseURL() + "statuses/retweet/" + statusId + ".json",
                 new PostParameter[0], true));
     }
 
@@ -700,7 +700,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public User showUser(String screenName) throws TwitterException {
-        return new User(get(getBaseURL() + "users/show.json?screen_name="
+        return User.createFromResponseHeader(get(getBaseURL() + "users/show.json?screen_name="
                 + screenName , http.isAuthenticationEnabled()));
     }
 
@@ -708,7 +708,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public User showUser(int userId) throws TwitterException {
-        return new User(get(getBaseURL() + "users/show.json?user_id="
+        return User.createFromResponseHeader(get(getBaseURL() + "users/show.json?user_id="
                 + userId , http.isAuthenticationEnabled()));
     }
 
@@ -921,7 +921,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public User checkUserListMembership(String listOwnerScreenName, int listId, int userId) throws TwitterException {
-        return new User(get(getBaseURL() + listOwnerScreenName + "/" + listId
+        return User.createFromResponseHeader(get(getBaseURL() + listOwnerScreenName + "/" + listId
                 + "/members/"+ userId +".json", true));
     }
 
@@ -956,7 +956,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public User checkUserListSubscription(String listOwnerScreenName, int listId, int userId) throws TwitterException {
-        return new User(get(getBaseURL() + listOwnerScreenName + "/" + listId
+        return User.createFromResponseHeader(get(getBaseURL() + listOwnerScreenName + "/" + listId
                 + "/subscribers/" + userId + ".json", true));
     }
 
@@ -1028,21 +1028,21 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public User createFriendship(String screenName) throws TwitterException {
-        return new User(http.post(getBaseURL() + "friendships/create.json?screen_name=" + screenName, new PostParameter[0], true));
+        return User.createFromResponseHeader(http.post(getBaseURL() + "friendships/create.json?screen_name=" + screenName, new PostParameter[0], true));
     }
 
     /**
      * {@inheritDoc}
      */
     public User createFriendship(int userId) throws TwitterException {
-        return new User(http.post(getBaseURL() + "friendships/create.json?user_id=" + userId, new PostParameter[0], true));
+        return User.createFromResponseHeader(http.post(getBaseURL() + "friendships/create.json?user_id=" + userId, new PostParameter[0], true));
     }
 
     /**
      * {@inheritDoc}
      */
     public User createFriendship(String screenName, boolean follow) throws TwitterException {
-        return new User(http.post(getBaseURL() + "friendships/create.json?screen_name=" + screenName
+        return User.createFromResponseHeader(http.post(getBaseURL() + "friendships/create.json?screen_name=" + screenName
                 + "&follow=" + follow , true));
     }
 
@@ -1050,7 +1050,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public User createFriendship(int userId, boolean follow) throws TwitterException {
-        return new User(http.post(getBaseURL() + "friendships/create.json?user_id=" + userId
+        return User.createFromResponseHeader(http.post(getBaseURL() + "friendships/create.json?user_id=" + userId
                 + "&follow=" + follow , true));
     }
 
@@ -1058,7 +1058,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public User destroyFriendship(String screenName) throws TwitterException {
-        return new User(http.post(getBaseURL() + "friendships/destroy.json?screen_name="
+        return User.createFromResponseHeader(http.post(getBaseURL() + "friendships/destroy.json?screen_name="
                 + screenName, true));
     }
 
@@ -1066,7 +1066,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public User destroyFriendship(int userId) throws TwitterException {
-        return new User(http.post(getBaseURL() + "friendships/destroy.json?user_id="
+        return User.createFromResponseHeader(http.post(getBaseURL() + "friendships/destroy.json?user_id="
                 + userId, true));
     }
 
@@ -1187,7 +1187,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public User verifyCredentials() throws TwitterException {
-        return new User(get(getBaseURL() + "account/verify_credentials.json"
+        return User.createFromResponseHeader(get(getBaseURL() + "account/verify_credentials.json"
                 , true));
     }
 
@@ -1202,7 +1202,7 @@ public class Twitter extends TwitterSupport
         addParameterToList(profile, "url", url);
         addParameterToList(profile, "location", location);
         addParameterToList(profile, "description", description);
-        return new User(http.post(getBaseURL() + "account/update_profile.json"
+        return User.createFromResponseHeader(http.post(getBaseURL() + "account/update_profile.json"
                 , profile.toArray(new PostParameter[profile.size()]), true));
     }
 
@@ -1217,7 +1217,7 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public User updateDeliveryDevice(Device device) throws TwitterException {
-        return new User(http.post(getBaseURL() + "account/update_delivery_device.json", new PostParameter[]{new PostParameter("device", device.getName())}, true));
+        return User.createFromResponseHeader(http.post(getBaseURL() + "account/update_delivery_device.json", new PostParameter[]{new PostParameter("device", device.getName())}, true));
     }
 
 
@@ -1242,7 +1242,7 @@ public class Twitter extends TwitterSupport
                 , profileSidebarFillColor);
         addParameterToList(colors, "profile_sidebar_border_color"
                 , profileSidebarBorderColor);
-        return new User(http.post(getBaseURL() +
+        return User.createFromResponseHeader(http.post(getBaseURL() +
                 "account/update_profile_colors.json",
                 colors.toArray(new PostParameter[colors.size()]), true));
     }
@@ -1259,7 +1259,7 @@ public class Twitter extends TwitterSupport
      */
     public User updateProfileImage(File image) throws TwitterException {
         checkFileValidity(image);
-        return new User(http.post(getBaseURL()
+        return User.createFromResponseHeader(http.post(getBaseURL()
                 + "account/update_profile_image.json",
                 new PostParameter[]{new PostParameter("image", image)}, true));
     }
@@ -1270,7 +1270,7 @@ public class Twitter extends TwitterSupport
     public User updateProfileBackgroundImage(File image, boolean tile)
             throws TwitterException {
         checkFileValidity(image);
-        return new User(http.post(getBaseURL()
+        return User.createFromResponseHeader(http.post(getBaseURL()
                 + "account/update_profile_background_image.json",
                 new PostParameter[]{new PostParameter("image", image),
                 new PostParameter("tile", tile)}, true));
@@ -1325,42 +1325,42 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public Status createFavorite(long id) throws TwitterException {
-        return new Status(http.post(getBaseURL() + "favorites/create/" + id + ".json", true));
+        return Status.createFromResponseHeader(http.post(getBaseURL() + "favorites/create/" + id + ".json", true));
     }
 
     /**
      * {@inheritDoc}
      */
     public Status destroyFavorite(long id) throws TwitterException {
-        return new Status(http.post(getBaseURL() + "favorites/destroy/" + id + ".json", true));
+        return Status.createFromResponseHeader(http.post(getBaseURL() + "favorites/destroy/" + id + ".json", true));
     }
 
     /**
      * {@inheritDoc}
      */
     public User enableNotification(String screenName) throws TwitterException {
-        return new User(http.post(getBaseURL() + "notifications/follow.json?screen_name=" + screenName, true));
+        return User.createFromResponseHeader(http.post(getBaseURL() + "notifications/follow.json?screen_name=" + screenName, true));
     }
 
     /**
      * {@inheritDoc}
      */
     public User enableNotification(int userId) throws TwitterException {
-        return new User(http.post(getBaseURL() + "notifications/follow.json?userId=" + userId, true));
+        return User.createFromResponseHeader(http.post(getBaseURL() + "notifications/follow.json?userId=" + userId, true));
     }
 
     /**
      * {@inheritDoc}
      */
     public User disableNotification(String screenName) throws TwitterException {
-        return new User(http.post(getBaseURL() + "notifications/leave.json?screen_name=" + screenName, true));
+        return User.createFromResponseHeader(http.post(getBaseURL() + "notifications/leave.json?screen_name=" + screenName, true));
     }
 
     /**
      * {@inheritDoc}
      */
     public User disableNotification(int userId) throws TwitterException {
-        return new User(http.post(getBaseURL() + "notifications/leave.json?user_id=" + userId, true));
+        return User.createFromResponseHeader(http.post(getBaseURL() + "notifications/leave.json?user_id=" + userId, true));
     }
 
     /* Block Methods */
@@ -1369,28 +1369,28 @@ public class Twitter extends TwitterSupport
      * {@inheritDoc}
      */
     public User createBlock(String screenName) throws TwitterException {
-        return new User(http.post(getBaseURL() + "blocks/create.json?screen_name=" + screenName, true));
+        return User.createFromResponseHeader(http.post(getBaseURL() + "blocks/create.json?screen_name=" + screenName, true));
     }
 
     /**
      * {@inheritDoc}
      */
     public User createBlock(int userId) throws TwitterException {
-        return new User(http.post(getBaseURL() + "blocks/create.json?user_id=" + userId, true));
+        return User.createFromResponseHeader(http.post(getBaseURL() + "blocks/create.json?user_id=" + userId, true));
     }
 
     /**
      * {@inheritDoc}
      */
     public User destroyBlock(String screen_name) throws TwitterException {
-        return new User(http.post(getBaseURL() + "blocks/destroy.json?screen_name=" + screen_name, true));
+        return User.createFromResponseHeader(http.post(getBaseURL() + "blocks/destroy.json?screen_name=" + screen_name, true));
     }
 
     /**
      * {@inheritDoc}
      */
     public User destroyBlock(int userId) throws TwitterException {
-        return new User(http.post(getBaseURL() + "blocks/destroy.json?user_id=" + userId, true));
+        return User.createFromResponseHeader(http.post(getBaseURL() + "blocks/destroy.json?user_id=" + userId, true));
     }
 
     /**

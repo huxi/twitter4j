@@ -55,14 +55,19 @@ public class SearchAPITest extends TwitterTestBase {
 
         List<Tweet> tweets = queryResult.getTweets();
         assertTrue(1<=tweets.size());
-        assertNotNull(tweets.get(0).getText());
-        assertNotNull(tweets.get(0).getCreatedAt());
-        assertNotNull("from user", tweets.get(0).getFromUser());
-        assertTrue("fromUserId", -1 != tweets.get(0).getFromUserId());
-        assertTrue(-1 !=  tweets.get(0).getId());
+        Tweet tweet = tweets.get(0);
+        assertNotNull(tweet.getText());
+        assertNotNull(tweet.getCreatedAt());
+        assertNotNull("from user", tweet.getFromUser());
+        assertTrue("fromUserId", -1 != tweet.getFromUserId());
+        assertTrue(-1 !=  tweet.getId());
 //        assertNotNull(tweets.get(0).getIsoLanguageCode());
-        assertTrue(-1 != tweets.get(0).getProfileImageUrl().indexOf(".jpg") ||-1 != tweets.get(0).getProfileImageUrl().indexOf(".png") );
-        assertTrue(-1 != tweets.get(0).getSource().indexOf("twitter"));
+        String profileImageUrl=tweet.getProfileImageUrl();
+        if(!((-1 != profileImageUrl.indexOf(".jpg") || -1 != profileImageUrl.indexOf(".png")  || -1 != profileImageUrl.indexOf(".gif"))))
+        {
+            fail("ProfileImageUrl does not contain image extension! "+profileImageUrl);
+        }
+        assertTrue(-1 != tweet.getSource().indexOf("twitter"));
 
 
         query = new Query("from:twit4j doesnothit");

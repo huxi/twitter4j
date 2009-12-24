@@ -63,8 +63,8 @@ public class DirectMessage extends TwitterResponseImpl implements java.io.Serial
         sender_screen_name = ParseUtil.getText("sender_screen_name", json);
         recipient_screen_name = ParseUtil.getText("recipient_screen_name", json);
         try {
-            sender = new User(json.getJSONObject("sender"));
-            recipient = new User(json.getJSONObject("recipient"));
+            sender = User.createFromJSONObject(json.getJSONObject("sender"));
+            recipient = User.createFromJSONObject(json.getJSONObject("recipient"));
         } catch (JSONException jsone) {
             throw new TwitterException(jsone);
         }
