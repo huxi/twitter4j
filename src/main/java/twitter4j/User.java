@@ -333,7 +333,7 @@ public class User implements TwitterResponse {
         private String imageUrl;
         private String backgroundColor;
         private String backgroundImageUrl;
-        private String backgroundTile;
+        private boolean backgroundTile;
         private String sidebarFillColor;
         private String sidebarBorderColor;
         private static final long serialVersionUID = -4426066477774540374L;
@@ -365,11 +365,11 @@ public class User implements TwitterResponse {
             this.backgroundImageUrl = backgroundImageUrl;
         }
 
-        public String getBackgroundTile() {
+        public boolean getBackgroundTile() {
             return backgroundTile;
         }
 
-        public void setBackgroundTile(String backgroundTile) {
+        public void setBackgroundTile(boolean backgroundTile) {
             this.backgroundTile = backgroundTile;
         }
 
@@ -412,11 +412,10 @@ public class User implements TwitterResponse {
 
             Profile profile = (Profile) o;
 
+            if (backgroundTile != profile.backgroundTile) return false;
             if (backgroundColor != null ? !backgroundColor.equals(profile.backgroundColor) : profile.backgroundColor != null)
                 return false;
             if (backgroundImageUrl != null ? !backgroundImageUrl.equals(profile.backgroundImageUrl) : profile.backgroundImageUrl != null)
-                return false;
-            if (backgroundTile != null ? !backgroundTile.equals(profile.backgroundTile) : profile.backgroundTile != null)
                 return false;
             if (imageUrl != null ? !imageUrl.equals(profile.imageUrl) : profile.imageUrl != null) return false;
             if (linkColor != null ? !linkColor.equals(profile.linkColor) : profile.linkColor != null) return false;
@@ -436,7 +435,7 @@ public class User implements TwitterResponse {
             result = 31 * result + (imageUrl != null ? imageUrl.hashCode() : 0);
             result = 31 * result + (backgroundColor != null ? backgroundColor.hashCode() : 0);
             result = 31 * result + (backgroundImageUrl != null ? backgroundImageUrl.hashCode() : 0);
-            result = 31 * result + (backgroundTile != null ? backgroundTile.hashCode() : 0);
+            result = 31 * result + (backgroundTile ? 1 : 0);
             result = 31 * result + (sidebarFillColor != null ? sidebarFillColor.hashCode() : 0);
             result = 31 * result + (sidebarBorderColor != null ? sidebarBorderColor.hashCode() : 0);
             return result;

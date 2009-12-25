@@ -145,7 +145,7 @@ public final class TwitterTransport {
             profile.setSidebarFillColor(json.getString("profile_sidebar_fill_color"));
             profile.setSidebarBorderColor(json.getString("profile_sidebar_border_color"));
             profile.setBackgroundImageUrl(json.getString("profile_background_image_url"));
-            profile.setBackgroundTile(json.getString("profile_background_tile"));
+            profile.setBackgroundTile(Boolean.getBoolean(json.getString("profile_background_tile")));
 
             result.setProfile(profile);
 
