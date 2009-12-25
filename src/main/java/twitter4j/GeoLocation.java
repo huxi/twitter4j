@@ -39,6 +39,9 @@ public class GeoLocation implements Serializable{
     private double longitude;
     private static final long serialVersionUID = -4847567157651889935L;
 
+    public GeoLocation() {
+    }
+
     public GeoLocation(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
@@ -48,8 +51,16 @@ public class GeoLocation implements Serializable{
         return latitude;
     }
 
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
     public double getLongitude() {
         return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 
     @Override
