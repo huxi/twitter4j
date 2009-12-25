@@ -200,7 +200,6 @@ public class Status  implements TwitterResponse {
     }
 
 
-
     @Override
     public int hashCode() {
         return (int) id;
@@ -215,6 +214,27 @@ public class Status  implements TwitterResponse {
             return true;
         }
         return obj instanceof Status && ((Status) obj).id == this.id;
+    }
+
+    public boolean deepEquals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Status status = (Status) o;
+
+        if (favorited != status.favorited) return false;
+        if (id != status.id) return false;
+        if (truncated != status.truncated) return false;
+        if (createdAt != null ? !createdAt.equals(status.createdAt) : status.createdAt != null) return false;
+        if (geoLocation != null ? !geoLocation.equals(status.geoLocation) : status.geoLocation != null) return false;
+        if (inReplyTo != null ? !inReplyTo.equals(status.inReplyTo) : status.inReplyTo != null) return false;
+        if (retweetedStatus != null ? !retweetedStatus.deepEquals(status.retweetedStatus) : status.retweetedStatus != null)
+            return false;
+        if (source != null ? !source.equals(status.source) : status.source != null) return false;
+        if (text != null ? !text.equals(status.text) : status.text != null) return false;
+        if (user != null ? !user.deepEquals(status.user) : status.user != null) return false;
+
+        return true;
     }
 
     @Override

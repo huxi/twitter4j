@@ -292,6 +292,34 @@ public class User implements TwitterResponse {
         return obj instanceof User && ((User) obj).id == this.id;
     }
 
+    public boolean deepEquals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        User user = (User) o;
+
+        if (favouritesCount != user.favouritesCount) return false;
+        if (followersCount != user.followersCount) return false;
+        if (friendsCount != user.friendsCount) return false;
+        if (id != user.id) return false;
+        if (isGeoEnabled != user.isGeoEnabled) return false;
+        if (isProtected != user.isProtected) return false;
+        if (isVerified != user.isVerified) return false;
+        if (statusesCount != user.statusesCount) return false;
+        if (utcOffset != user.utcOffset) return false;
+        if (createdAt != null ? !createdAt.equals(user.createdAt) : user.createdAt != null) return false;
+        if (description != null ? !description.equals(user.description) : user.description != null) return false;
+        if (location != null ? !location.equals(user.location) : user.location != null) return false;
+        if (name != null ? !name.equals(user.name) : user.name != null) return false;
+        if (profile != null ? !profile.equals(user.profile) : user.profile != null) return false;
+        if (screenName != null ? !screenName.equals(user.screenName) : user.screenName != null) return false;
+        if (status != null ? !status.deepEquals(user.status) : user.status != null) return false;
+        if (timeZone != null ? !timeZone.equals(user.timeZone) : user.timeZone != null) return false;
+        if (url != null ? !url.equals(user.url) : user.url != null) return false;
+
+        return true;
+    }
+
     @Override
     public String toString() {
         return "User{" +
