@@ -123,7 +123,6 @@ public class DirectMessage implements TwitterResponse {
         this.recipient = recipient;
     }
 
-
     @Override
     public int hashCode() {
         return id;
@@ -138,6 +137,27 @@ public class DirectMessage implements TwitterResponse {
             return true;
         }
         return obj instanceof DirectMessage && ((DirectMessage) obj).id == this.id;
+    }
+
+    public boolean deepEquals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DirectMessage that = (DirectMessage) o;
+
+        if (id != that.id) return false;
+        if (recipientId != that.recipientId) return false;
+        if (senderId != that.senderId) return false;
+        if (createdAt != null ? !createdAt.equals(that.createdAt) : that.createdAt != null) return false;
+        if (recipient != null ? !recipient.deepEquals(that.recipient) : that.recipient != null) return false;
+        if (recipientScreenName != null ? !recipientScreenName.equals(that.recipientScreenName) : that.recipientScreenName != null)
+            return false;
+        if (sender != null ? !sender.deepEquals(that.sender) : that.sender != null) return false;
+        if (senderScreenName != null ? !senderScreenName.equals(that.senderScreenName) : that.senderScreenName != null)
+            return false;
+        if (text != null ? !text.equals(that.text) : that.text != null) return false;
+
+        return true;
     }
 
     @Override
