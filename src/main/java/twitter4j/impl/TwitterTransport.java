@@ -130,7 +130,7 @@ public final class TwitterTransport {
             result.setScreenName(json.getString("screen_name"));
             result.setLocation(json.getString("location"));
             result.setDescription(json.getString("description"));
-            result.setURL(json.getString("url"));
+            result.setUrl(json.getString("url"));
             result.setProtected(json.getBoolean("protected"));
             result.setGeoEnabled(json.getBoolean("geo_enabled"));
             result.setVerified(json.getBoolean("verified"));
