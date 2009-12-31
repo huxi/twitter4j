@@ -78,9 +78,9 @@ import static twitter4j.ParseUtil.*;
 
     private void init(JSONObject savedSearch) throws TwitterException {
             createdAt = getDate("created_at", savedSearch, "EEE MMM dd HH:mm:ss z yyyy");
-            query = getURLDecodedString("query", savedSearch);
+            query = getUnescapedString("query", savedSearch);
             position = getInt("position", savedSearch);
-            name = getURLDecodedString("name", savedSearch);
+            name = getUnescapedString("name", savedSearch);
             id = getInt("id", savedSearch);
     }
 
@@ -91,19 +91,11 @@ import static twitter4j.ParseUtil.*;
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
     /**
      * {@inheritDoc}
      */
     public String getQuery() {
         return query;
-    }
-
-    public void setQuery(String query) {
-        this.query = query;
     }
 
     /**
@@ -113,19 +105,11 @@ import static twitter4j.ParseUtil.*;
         return position;
     }
 
-    public void setPosition(int position) {
-        this.position = position;
-    }
-
     /**
      * {@inheritDoc}
      */
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     /**

@@ -68,7 +68,6 @@ import java.util.TimeZone;
         }
     }
 
-
     static String getURLDecodedString(String name, JSONObject json) {
         String returnValue = getRawString(name, json);
         if (null != returnValue) {

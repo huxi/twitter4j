@@ -80,11 +80,6 @@ import static twitter4j.ParseUtil.*;
     private boolean isVerified;
     private static final long serialVersionUID = -6345893237975349030L;
 
-    /*package*/UserJSONImpl() {
-        // Just for protobuf support
-        // Currently this constructor is never used in twitter4j artifact.
-    }
-
     /*package*/UserJSONImpl(Response res) throws TwitterException {
         super(res);
         init(res.asJSONObject());
@@ -231,10 +226,6 @@ import static twitter4j.ParseUtil.*;
         return isProtected;
     }
 
-    public void setProtected(boolean aProtected) {
-        isProtected = aProtected;
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -341,10 +332,6 @@ import static twitter4j.ParseUtil.*;
         return -1 != statusInReplyToUserId ? statusInReplyToScreenName : null;
     }
 
-    public void setStatusInReplyToScreenName(String statusInReplyToScreenName) {
-        this.statusInReplyToScreenName = statusInReplyToScreenName;
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -360,19 +347,11 @@ import static twitter4j.ParseUtil.*;
         return profileTextColor;
     }
 
-    public void setProfileTextColor(String profileTextColor) {
-        this.profileTextColor = profileTextColor;
-    }
-
     /**
      * {@inheritDoc}
      */
     public String getProfileLinkColor() {
         return profileLinkColor;
-    }
-
-    public void setProfileLinkColor(String profileLinkColor) {
-        this.profileLinkColor = profileLinkColor;
     }
 
     /**
@@ -382,19 +361,11 @@ import static twitter4j.ParseUtil.*;
         return profileSidebarFillColor;
     }
 
-    public void setProfileSidebarFillColor(String profileSidebarFillColor) {
-        this.profileSidebarFillColor = profileSidebarFillColor;
-    }
-
     /**
      * {@inheritDoc}
      */
     public String getProfileSidebarBorderColor() {
         return profileSidebarBorderColor;
-    }
-
-    public void setProfileSidebarBorderColor(String profileSidebarBorderColor) {
-        this.profileSidebarBorderColor = profileSidebarBorderColor;
     }
 
     /**
@@ -404,19 +375,11 @@ import static twitter4j.ParseUtil.*;
         return friendsCount;
     }
 
-    public void setFriendsCount(int friendsCount) {
-        this.friendsCount = friendsCount;
-    }
-
     /**
      * {@inheritDoc}
      */
     public Date getCreatedAt() {
         return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
     }
 
     /**
@@ -426,19 +389,11 @@ import static twitter4j.ParseUtil.*;
         return favouritesCount;
     }
 
-    public void setFavouritesCount(int favouritesCount) {
-        this.favouritesCount = favouritesCount;
-    }
-
     /**
      * {@inheritDoc}
      */
     public int getUtcOffset() {
         return utcOffset;
-    }
-
-    public void setUtcOffset(int utcOffset) {
-        this.utcOffset = utcOffset;
     }
 
     /**
@@ -448,10 +403,6 @@ import static twitter4j.ParseUtil.*;
         return timeZone;
     }
 
-    public void setTimeZone(String timeZone) {
-        this.timeZone = timeZone;
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -459,19 +410,11 @@ import static twitter4j.ParseUtil.*;
         return profileBackgroundImageUrl;
     }
 
-    public void setProfileBackgroundImageUrl(String profileBackgroundImageUrl) {
-        this.profileBackgroundImageUrl = profileBackgroundImageUrl;
-    }
-
     /**
      * {@inheritDoc}
      */
     public boolean isProfileBackgroundTiled() {
         return profileBackgroundTiled;
-    }
-
-    public void setProfileBackgroundTiled(boolean profileBackgroundTiled) {
-        this.profileBackgroundTiled = profileBackgroundTiled;
     }
 
     /**

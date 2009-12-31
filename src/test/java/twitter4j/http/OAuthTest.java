@@ -34,6 +34,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com
@@ -45,6 +47,8 @@ public class OAuthTest extends TwitterTestUnit {
     private String browserConsumerKey;
     private HttpClient decktopClient;
     private HttpClient browserClient;
+    private OAuthAuthorization desktopClientOAuthAuthentication;
+    private OAuthAuthorization browserClientOAuthAuthentication;
 
     public OAuthTest(String name) {
         super(name);
@@ -56,23 +60,21 @@ public class OAuthTest extends TwitterTestUnit {
         desktopConsumerSecret = p.getProperty("desktopConsumerSecret");
         desktopConsumerKey = p.getProperty("desktopConsumerKey");
         decktopClient = new HttpClient();
-        decktopClient.setOAuthConsumer(desktopConsumerKey, desktopConsumerSecret);
+        desktopClientOAuthAuthentication = new OAuthAuthorization(desktopConsumerKey, desktopConsumerSecret);
 
         browserConsumerSecret = p.getProperty("browserConsumerSecret");
         browserConsumerKey = p.getProperty("browserConsumerKey");
         browserClient = new HttpClient();
-        browserClient.setOAuthConsumer(browserConsumerKey, browserConsumerSecret);
+        browserClientOAuthAuthentication = new OAuthAuthorization(browserConsumerKey, browserConsumerSecret);
 
-//        consumerSecret = p.getProperty("browserConsumerSecret");
-//        consumerKey = p.getProperty("browserConsumerKey");
+//        consumerSecret = p.getString("browserConsumerSecret");
+//        consumerKey = p.getString("browserConsumerKey");
 
         twitterAPI1 = new Twitter();
         twitterAPI1.setOAuthConsumer(desktopConsumerKey, desktopConsumerSecret);
         String id1token = p.getProperty("id1.oauth_token");
         String id1tokenSecret = p.getProperty("id1.oauth_token_secret");
         twitterAPI1.setOAuthAccessToken(new AccessToken(id1token, id1tokenSecret));
-        twitterAPI1.setRetryCount(3);
-        twitterAPI1.setRetryIntervalSecs(10);
 
         twitterAPI2 = new Twitter();
         twitterAPI2.setOAuthConsumer(desktopConsumerKey, desktopConsumerSecret);
@@ -80,8 +82,6 @@ public class OAuthTest extends TwitterTestUnit {
         String id2tokenSecret = p.getProperty("id2.oauth_token_secret");
         twitterAPI2.setOAuthAccessToken(new AccessToken(id2token, id2tokenSecret));
 
-        twitterAPI2.setRetryCount(3);
-        twitterAPI2.setRetryIntervalSecs(10);
         unauthenticated = new Twitter();
     }
 
@@ -109,7 +109,8 @@ public class OAuthTest extends TwitterTestUnit {
         http = new HttpClient();
 
         // desktop client - requiring pin
-        rt = decktopClient.getOAuthRequestToken();
+        unauthenticated.setOAuthConsumer(desktopConsumerKey, desktopConsumerSecret);
+        rt = unauthenticated.getOAuthRequestToken();
         try {
             rt.getAccessToken();
             fail();
@@ -124,10 +125,11 @@ public class OAuthTest extends TwitterTestUnit {
         } catch (TwitterException te) {
             assertEquals(401, te.getStatusCode());
         }
-
+        Map<String,String> props = new HashMap<String,String>();
         response = http.get(rt.getAuthorizationURL());
         cookie = response.getResponseHeader("Set-Cookie");
-        http.setRequestHeader("Cookie", cookie);
+//        http.setRequestHeader("Cookie", cookie);
+        props.put("Cookie", cookie);
         resStr = response.asString();
         authorizeURL = catchPattern(resStr, "<form action=\"", "\" id=\"login_form\"");
         params = new PostParameter[4];
@@ -137,7 +139,7 @@ public class OAuthTest extends TwitterTestUnit {
                 catchPattern(resStr, "name=\"oauth_token\" type=\"hidden\" value=\"", "\" />"));
         params[2] = new PostParameter("session[username_or_email]", id1.name);
         params[3] = new PostParameter("session[password]", id1.pass);
-        response = http.post(authorizeURL, params);
+        response = http.request(new HttpRequest(RequestMethod.POST, authorizeURL, params, null, props));
         resStr = response.asString();
         String pin = catchPattern(resStr, "<div id=\"oauth_pin\">\n  ", "\n</div>");
         at = twitter.getOAuthAccessToken(rt.getToken(), rt.getTokenSecret(), pin);
@@ -162,9 +164,12 @@ public class OAuthTest extends TwitterTestUnit {
         twitter.setOAuthConsumer(browserConsumerKey, browserConsumerSecret);
         rt = twitter.getOAuthRequestToken();
 
+        Map<String,String> props = new HashMap<String,String>();
         response = http.get(rt.getAuthenticationURL());
         cookie = response.getResponseHeader("Set-Cookie");
-        http.setRequestHeader("Cookie", cookie);
+//        http.setRequestHeader("Cookie", cookie);
+        props.put("Cookie", cookie);
+
         resStr = response.asString();
         authorizeURL = catchPattern(resStr, "<form action=\"", "\" id=\"login_form\"");
         params = new PostParameter[4];
@@ -174,7 +179,9 @@ public class OAuthTest extends TwitterTestUnit {
                 catchPattern(resStr, "name=\"oauth_token\" type=\"hidden\" value=\"", "\" />"));
         params[2] = new PostParameter("session[username_or_email]", id1.name);
         params[3] = new PostParameter("session[password]", id1.pass);
-        response = http.post(authorizeURL, params);
+        response = http.request(new HttpRequest(RequestMethod.POST, authorizeURL, params, null, props));
+
+//        response = http.post(authorizeURL, params);
         at = twitter.getOAuthAccessToken(rt.getToken(), rt.getTokenSecret());
         assertEquals(at.getScreenName(), id1.name);
         assertEquals(at.getUserId(), 6358482);
@@ -198,8 +205,12 @@ public class OAuthTest extends TwitterTestUnit {
         rt = twitter.getOAuthRequestToken();
 
         response = http.get(rt.getAuthorizationURL());
+
+        response = http.get(rt.getAuthorizationURL());
+        Map<String,String> props = new HashMap<String,String>();
         cookie = response.getResponseHeader("Set-Cookie");
-        http.setRequestHeader("Cookie", cookie);
+//        http.setRequestHeader("Cookie", cookie);
+        props.put("Cookie", cookie);
         resStr = response.asString();
         authorizeURL = catchPattern(resStr, "<form action=\"", "\" id=\"login_form\"");
         params = new PostParameter[4];
@@ -209,7 +220,7 @@ public class OAuthTest extends TwitterTestUnit {
                 catchPattern(resStr, "name=\"oauth_token\" type=\"hidden\" value=\"", "\" />"));
         params[2] = new PostParameter("session[username_or_email]", id1.name);
         params[3] = new PostParameter("session[password]", id1.pass);
-        response = http.post(authorizeURL, params);
+        response = http.request(new HttpRequest(RequestMethod.POST, authorizeURL, params, null, props));
         at = twitter.getOAuthAccessToken(rt.getToken(), rt.getTokenSecret());
         assertEquals(at.getScreenName(), id1.name);
         assertEquals(at.getUserId(), 6358482);
@@ -237,8 +248,10 @@ public class OAuthTest extends TwitterTestUnit {
 
         System.out.println("----------authorizeURL" + rt.getAuthorizationURL());
         response = http.get(rt.getAuthorizationURL());
+        Map<String,String> props = new HashMap<String,String>();
         cookie = response.getResponseHeader("Set-Cookie");
-        http.setRequestHeader("Cookie", cookie);
+//        http.setRequestHeader("Cookie", cookie);
+        props.put("Cookie", cookie);
         resStr = response.asString();
         authorizeURL = catchPattern(resStr, "<form action=\"", "\" id=\"login_form\"");
         params = new PostParameter[4];
@@ -248,7 +261,8 @@ public class OAuthTest extends TwitterTestUnit {
                 catchPattern(resStr, "name=\"oauth_token\" type=\"hidden\" value=\"", "\" />"));
         params[2] = new PostParameter("session[username_or_email]", id1.name);
         params[3] = new PostParameter("session[password]", id1.pass);
-        response = http.post(authorizeURL, params);
+        response = http.request(new HttpRequest(RequestMethod.POST, authorizeURL, params, null, props));
+//        response = http.post(authorizeURL, params);
         resStr = response.asString();
         String oauthVerifier = catchPattern(resStr, "&oauth_verifier=", "\">");
 
@@ -275,20 +289,20 @@ public class OAuthTest extends TwitterTestUnit {
 
     public void testSign() throws Exception {
         String baseStr = "GET&http%3A%2F%2Fphotos.example.net%2Fphotos&file%3Dvacation.jpg%26oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0%26size%3Doriginal";
-        OAuth oauth = new OAuth("dpf43f3p2l4k3l03", "kd94hf93k423kf44");
+        OAuthAuthorization oauth = new OAuthAuthorization("dpf43f3p2l4k3l03", "kd94hf93k423kf44");
         trySerializable(oauth);
         //http://wiki.oauth.net/TestCases
         assertEquals("tR3+Ty81lMeYAr/Fid0kMTYa/WM=", oauth.generateSignature(baseStr, new RequestToken("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")));
-        assertEquals("egQqG5AJep5sJ7anhXju1unge2I=", new OAuth(desktopConsumerKey, "cs").generateSignature("bs", new RequestToken("nnch734d00sl2jdk", "")));
-        assertEquals("VZVjXceV7JgPq/dOTnNmEfO0Fv8=", new OAuth(desktopConsumerKey, "cs").generateSignature("bs", new RequestToken("nnch734d00sl2jdk", "ts")));
-        assertEquals("tR3+Ty81lMeYAr/Fid0kMTYa/WM=", new OAuth(desktopConsumerKey, "kd94hf93k423kf44").generateSignature("GET&http%3A%2F%2Fphotos.example.net%2Fphotos&file%3Dvacation.jpg%26oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0%26size%3Doriginal", new RequestToken("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")));
+        assertEquals("egQqG5AJep5sJ7anhXju1unge2I=", new OAuthAuthorization(desktopConsumerKey, "cs").generateSignature("bs", new RequestToken("nnch734d00sl2jdk", "")));
+        assertEquals("VZVjXceV7JgPq/dOTnNmEfO0Fv8=", new OAuthAuthorization(desktopConsumerKey, "cs").generateSignature("bs", new RequestToken("nnch734d00sl2jdk", "ts")));
+        assertEquals("tR3+Ty81lMeYAr/Fid0kMTYa/WM=", new OAuthAuthorization(desktopConsumerKey, "kd94hf93k423kf44").generateSignature("GET&http%3A%2F%2Fphotos.example.net%2Fphotos&file%3Dvacation.jpg%26oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jdk%26oauth_version%3D1.0%26size%3Doriginal", new RequestToken("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")));
     }
 
     public void testHeader() throws Exception {
         PostParameter[] params = new PostParameter[2];
         params[0] = new PostParameter("file", "vacation.jpg");
         params[1] = new PostParameter("size", "original");
-        OAuth oauth = new OAuth("dpf43f3p2l4k3l03", "kd94hf93k423kf44");
+        OAuthAuthorization oauth = new OAuthAuthorization("dpf43f3p2l4k3l03", "kd94hf93k423kf44");
         String expected = "OAuth oauth_consumer_key=\"dpf43f3p2l4k3l03\",oauth_signature_method=\"HMAC-SHA1\",oauth_timestamp=\"1191242096\",oauth_nonce=\"kllo9940pd9333jh\",oauth_version=\"1.0\",oauth_token=\"nnch734d00sl2jdk\",oauth_signature=\"tR3%2BTy81lMeYAr%2FFid0kMTYa%2FWM%3D\"";
         assertEquals(expected, oauth.generateAuthorizationHeader("GET", "http://photos.example.net/photos", params, "kllo9940pd9333jh", "1191242096", new RequestToken("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")));
 
@@ -296,19 +310,19 @@ public class OAuthTest extends TwitterTestUnit {
 
     public void testEncodeParameter() throws Exception {
         //http://wiki.oauth.net/TestCases
-        assertEquals("abcABC123", OAuth.encode("abcABC123"));
-        assertEquals("-._~", OAuth.encode("-._~"));
-        assertEquals("%25", OAuth.encode("%"));
-        assertEquals("%2B", OAuth.encode("+"));
-        assertEquals("%26%3D%2A", OAuth.encode("&=*"));
-        assertEquals("%0A", OAuth.encode("\n"));
-        assertEquals("%20", OAuth.encode("\u0020"));
-        assertEquals("%7F", OAuth.encode("\u007F"));
-        assertEquals("%C2%80", OAuth.encode("\u0080"));
-        assertEquals("%E3%80%81", OAuth.encode("\u3001"));
+        assertEquals("abcABC123", OAuthAuthorization.encode("abcABC123"));
+        assertEquals("-._~", OAuthAuthorization.encode("-._~"));
+        assertEquals("%25", OAuthAuthorization.encode("%"));
+        assertEquals("%2B", OAuthAuthorization.encode("+"));
+        assertEquals("%26%3D%2A", OAuthAuthorization.encode("&=*"));
+        assertEquals("%0A", OAuthAuthorization.encode("\n"));
+        assertEquals("%20", OAuthAuthorization.encode("\u0020"));
+        assertEquals("%7F", OAuthAuthorization.encode("\u007F"));
+        assertEquals("%C2%80", OAuthAuthorization.encode("\u0080"));
+        assertEquals("%E3%80%81", OAuthAuthorization.encode("\u3001"));
 
         String unreserved = "abcdefghijklmnopqrstuvwzyxABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
-        assertEquals(unreserved, OAuth.encode(unreserved));
+        assertEquals(unreserved, OAuthAuthorization.encode(unreserved));
 
     }
 
@@ -323,49 +337,49 @@ public class OAuthTest extends TwitterTestUnit {
                 new PostParameter("z", "p"),
                 new PostParameter("f", "a"),
         };
-        assertEquals("a=1&c=hi%20there&f=25&f=50&f=a&z=p&z=t", OAuth.normalizeRequestParameters(params));
+        assertEquals("a=1&c=hi%20there&f=25&f=50&f=a&z=p&z=t", OAuthAuthorization.normalizeRequestParameters(params));
 
         // test cases from http://wiki.oauth.net/TestCases - Normalize Request Parameters (section 9.1.1)
         params = new PostParameter[]{
                 new PostParameter("name", ""),
         };
-        assertEquals("name=", OAuth.normalizeRequestParameters(params));
+        assertEquals("name=", OAuthAuthorization.normalizeRequestParameters(params));
 
 
         params = new PostParameter[]{
                 new PostParameter("a", "b"),
         };
-        assertEquals("a=b", OAuth.normalizeRequestParameters(params));
+        assertEquals("a=b", OAuthAuthorization.normalizeRequestParameters(params));
 
         params = new PostParameter[]{
                 new PostParameter("a", "b"),
                 new PostParameter("c", "d"),
         };
-        assertEquals("a=b&c=d", OAuth.normalizeRequestParameters(params));
+        assertEquals("a=b&c=d", OAuthAuthorization.normalizeRequestParameters(params));
 
         params = new PostParameter[]{
                 new PostParameter("a", "x!y"),
                 new PostParameter("a", "x y"),
         };
-        assertEquals("a=x%20y&a=x%21y", OAuth.normalizeRequestParameters(params));
+        assertEquals("a=x%20y&a=x%21y", OAuthAuthorization.normalizeRequestParameters(params));
 
         params = new PostParameter[]{
                 new PostParameter("x!y", "a"),
                 new PostParameter("x", "a"),
         };
-        assertEquals("x=a&x%21y=a", OAuth.normalizeRequestParameters(params));
+        assertEquals("x=a&x%21y=a", OAuthAuthorization.normalizeRequestParameters(params));
 
 
     }
 
     public void testConstructRequestURL() throws Exception {
         //http://oauth.net/core/1.0#rfc.section.9.1.2
-        assertEquals("http://example.com/resource", OAuth.constructRequestURL("HTTP://Example.com:80/resource?id=123"));
-        assertEquals("http://example.com:8080/resource", OAuth.constructRequestURL("HTTP://Example.com:8080/resource?id=123"));
-        assertEquals("http://example.com/resource", OAuth.constructRequestURL("HTTP://Example.com/resource?id=123"));
-        assertEquals("https://example.com/resource", OAuth.constructRequestURL("HTTPS://Example.com:443/resource?id=123"));
-        assertEquals("https://example.com:8443/resource", OAuth.constructRequestURL("HTTPS://Example.com:8443/resource?id=123"));
-        assertEquals("https://example.com/resource", OAuth.constructRequestURL("HTTPS://Example.com/resource?id=123"));
+        assertEquals("http://example.com/resource", OAuthAuthorization.constructRequestURL("HTTP://Example.com:80/resource?id=123"));
+        assertEquals("http://example.com:8080/resource", OAuthAuthorization.constructRequestURL("HTTP://Example.com:8080/resource?id=123"));
+        assertEquals("http://example.com/resource", OAuthAuthorization.constructRequestURL("HTTP://Example.com/resource?id=123"));
+        assertEquals("https://example.com/resource", OAuthAuthorization.constructRequestURL("HTTPS://Example.com:443/resource?id=123"));
+        assertEquals("https://example.com:8443/resource", OAuthAuthorization.constructRequestURL("HTTPS://Example.com:8443/resource?id=123"));
+        assertEquals("https://example.com/resource", OAuthAuthorization.constructRequestURL("HTTPS://Example.com/resource?id=123"));
     }
 
     private void trySerializable(Object obj) throws IOException {

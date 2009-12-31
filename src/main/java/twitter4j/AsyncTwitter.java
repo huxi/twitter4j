@@ -44,6 +44,7 @@ import twitter4j.api.SpamReportingMethodsAsync;
 import twitter4j.api.StatusMethodsAsync;
 import twitter4j.api.TimelineMethodsAsync;
 import twitter4j.api.UserMethodsAsync;
+import twitter4j.conf.Configuration;
 
 import java.io.File;
 import java.util.Date;
@@ -57,7 +58,7 @@ import static twitter4j.TwitterMethod.*;
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
 public class AsyncTwitter extends Twitter
-        implements
+        implements java.io.Serializable,
         SearchMethodsAsync,
         TimelineMethodsAsync,
         StatusMethodsAsync,
@@ -190,17 +191,6 @@ public class AsyncTwitter extends Twitter
         getDispatcher().invokeLater(new AsyncTask(PUBLIC_TIMELINE, listener, null) {
             public void invoke(TwitterListener listener,Object[] args) throws TwitterException {
                 listener.gotPublicTimeline(getPublicTimeline());
-            }
-        });
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void getPublicTimelineAsync(long sinceID, TwitterListener listener) {
-        getDispatcher().invokeLater(new AsyncTask(PUBLIC_TIMELINE, listener, new Long[] {sinceID}) {
-            public void invoke(TwitterListener listener,Object[] args) throws TwitterException {
-                listener.gotPublicTimeline(getPublicTimeline( (Long) args[0]));
             }
         });
     }
@@ -1281,7 +1271,7 @@ public class AsyncTwitter extends Twitter
             throw new IllegalStateException("Already shut down");
         }
         if (null == dispatcher) {
-            dispatcher = new Dispatcher("Twitter4J Async Dispatcher", Configuration.getNumberOfAsyncThreads());
+            dispatcher = new Dispatcher("Twitter4J Async Dispatcher", Configuration.getInstance().getAsyncNumThreads());
         }
         return dispatcher;
     }

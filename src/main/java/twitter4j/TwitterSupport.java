@@ -26,231 +26,65 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
+import twitter4j.conf.Configuration;
+import twitter4j.http.Authorization;
+import twitter4j.http.BasicAuthorization;
 import twitter4j.http.HttpClient;
+import twitter4j.http.HttpRequestFactory;
+import twitter4j.http.NullAuthorization;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
 /**
  * @author Yusuke Yamamoto - yusuke at mac.com
  */
-/*protected*/ class TwitterSupport implements java.io.Serializable {
-    protected HttpClient http = new HttpClient();
-    protected String source = Configuration.getSource();
-    protected final boolean USE_SSL;
+class TwitterSupport implements java.io.Serializable {
+    protected transient static final Configuration conf = Configuration.getInstance();
 
-    protected List<RateLimitStatusListener> accountRateLimitStatusListeners = new ArrayList<RateLimitStatusListener>();
-    protected List<RateLimitStatusListener> ipRateLimitStatusListeners = new ArrayList<RateLimitStatusListener>();
-    private static final long serialVersionUID = -4779804628175934804L;
+    protected transient static final HttpRequestFactory requestFactory = new HttpRequestFactory(conf);
+
+    protected transient HttpClient http = HttpClient.getInstance(conf);
+
+    protected Authorization auth;
+    private static final long serialVersionUID = -3812176145960812140L;
+
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        out.writeObject(auth);
+    }
+
+    private void readObject(ObjectInputStream stream)
+            throws IOException, ClassNotFoundException {
+        auth = (Authorization)stream.readObject();
+        http = HttpClient.getInstance(conf);
+    }
+
 
     /*package*/ TwitterSupport(){
-        this(null, null);
+        this(conf.getUser(), conf.getPassword());
     }
+
     /*package*/ TwitterSupport(String userId, String password){
-        USE_SSL = Configuration.useSSL();
-        setClientVersion(null);
-        setClientURL(null);
-        setUserId(userId);
-        setPassword(password);
+        if (null != userId && null != password) {
+            auth = new BasicAuthorization(userId, password);
+        }
+        if(null == auth){
+            auth = NullAuthorization.getInstance();
+        }
     }
 
-    /**
-     * Registers a RateLimitStatusListener for account associated rate limits
-     * @param listener the listener to be added
-     * @since Twitter4J 2.1.0
-     * @see <a href="http://apiwiki.twitter.com/Twitter-REST-API-Method%3A-account%C2%A0rate_limit_status">Twitter API Wiki / Twitter REST API Method: account rate_limit_status</a>
-     */
-    public void addAccountRateLimitStatusListener(RateLimitStatusListener listener){
-    	accountRateLimitStatusListeners.add(listener);
+    protected void ensureAuthenticationEnabled() {
+        if (!auth.isAuthenticationEnabled()) {
+            throw new IllegalStateException(
+                    "Neither user ID/password combination nor OAuth consumer key/secret combination supplied");
+        }
     }
 
-
-    /**
-     * Registers a RateLimitStatusListener for ip associated rate limits
-     *
-     * @param listener the listener to be added
-     * @since Twitter4J 2.1.0
-     * @see <a href="http://apiwiki.twitter.com/Twitter-REST-API-Method%3A-account%C2%A0rate_limit_status">Twitter API Wiki / Twitter REST API Method: account rate_limit_status</a>
-     */
-    public void addIpRateLimitStatusListener(RateLimitStatusListener listener){
-    	ipRateLimitStatusListeners.add(listener);
-    }
-
-    /**
-     * Sets the User-Agent header. System property -Dtwitter4j.http.userAgent overrides this attribute.
-     * @param userAgent UserAgent
-     * @since Twitter4J 1.1.8
-     */
-    public void setUserAgent(String userAgent){
-        http.setUserAgent(userAgent);
-    }
-
-    /**
-     *
-     * @return UserAgent
-     * @since Twitter4J 1.1.8
-     */
-    public String getUserAgent(){
-        return http.getUserAgent();
-    }
-
-    /**
-     * Sets the X-Twitter-Client-Version header. System property -Dtwitter4j.clientVersion overrides this attribute.
-     * @param version client version
-     * @since Twitter4J 1.1.8
-     */
-    public void setClientVersion(String version){
-        setRequestHeader("X-Twitter-Client-Version", Configuration.getCilentVersion(version));
-    }
-
-    /**
-     *
-     * @return client version
-     * @since Twitter4J 1.1.8
-     */
-    public String getClientVersion(){
-        return http.getRequestHeader("X-Twitter-Client-Version");
-    }
-
-    /**
-     * Sets the X-Twitter-Client-URL header. System property -Dtwitter4j.clientURL overrides this attribute.
-     * @param clientURL client URL
-     * @since Twitter4J 1.1.8
-     */
-    public void setClientURL(String clientURL){
-        setRequestHeader("X-Twitter-Client-URL", Configuration.getClientURL(clientURL));
-    }
-
-    /**
-     *
-     * @return client URL
-     * @since Twitter4J 1.1.8
-     */
-    public String getClientURL(){
-        return http.getRequestHeader("X-Twitter-Client-URL");
-    }
-
-    /**
-     * Sets the userid
-     *
-     * @param userId new userid
-     */
-    public synchronized void setUserId(String userId) {
-        http.setUserId(Configuration.getUser(userId));
-    }
-
-    /**
-     * Returns authenticating userid
-     *
-     * @return userid
-     */
-    public String getUserId() {
-        return http.getUserId();
-    }
-
-    /**
-     * Sets the password
-     *
-     * @param password new password
-     */
-    public synchronized void setPassword(String password) {
-        http.setPassword(Configuration.getPassword(password));
-    }
-
-    /**
-     * Returns authenticating password
-     *
-     * @return password
-     */
-    public String getPassword() {
-        return http.getPassword();
-    }
-
-    /**
-     * Enables use of HTTP proxy
-     *
-     * @param proxyHost proxy host, can be overridden system property -Dtwitter4j.http.proxyHost , -Dhttp.proxyHost
-     * @param proxyPort proxy port, can be overridden system property -Dtwitter4j.http.proxyPort , -Dhttp.proxyPort
-     * @since Twitter4J 1.1.6
-     */
-    public void setHttpProxy(String proxyHost, int proxyPort) {
-        http.setProxyHost(proxyHost);
-        http.setProxyPort(proxyPort);
-    }
-
-    /**
-     * Adds authentication on HTTP proxy
-     *
-     * @param proxyUser proxy user, can be overridden system property -Dtwitter4j.http.proxyUser
-     * @param proxyPass proxy password, can be overridden system property -Dtwitter4j.http.proxyPassword
-     * @since Twitter4J 1.1.6
-     */
-    public void setHttpProxyAuth(String proxyUser, String proxyPass) {
-        http.setProxyAuthUser(proxyUser);
-        http.setProxyAuthPassword(proxyPass);
-    }
-
-    /**
-     * Sets a specified timeout value, in milliseconds, to be used when opening a communications link to the Twitter API.
-     * System property -Dtwitter4j.http.connectionTimeout overrides this attribute.
-     *
-     * @param connectionTimeout an int that specifies the connect timeout value in milliseconds
-     * @since Twitter4J 1.1.6
-     */
-    public void setHttpConnectionTimeout(int connectionTimeout) {
-        http.setConnectionTimeout(connectionTimeout);
-    }
-
-    /**
-     * Sets the read timeout to a specified timeout, in milliseconds.
-     *
-     * @param readTimeoutMilliSecs an int that specifies the timeout value to be used in milliseconds
-     * @since Twitter4J 1.1.6
-     */
-    public void setHttpReadTimeout(int readTimeoutMilliSecs) {
-        http.setReadTimeout(readTimeoutMilliSecs);
-    }
-
-    /**
-     * Sets X-Twitter-Client http header and the source parameter that will be passed by updating methods. System property -Dtwitter4j.source overrides this attribute.
-     * System property -Dtwitter4j.source overrides this attribute.
-     *
-     * @param source the new source
-     * @see <a href='http://apiwiki.twitter.com/FAQ#HowdoIget“fromMyApp”appendedtoupdatessentfrommyAPIapplication'>How do I get "from [MyApp]" appended to updates sent from my API application?</a>
-     * @see <a href="http://twitter.com/help/request_source">Twitter - Request a link to your application</a>
-     */
-    public void setSource(String source) {
-        this.source = Configuration.getSource(source);
-        setRequestHeader("X-Twitter-Client", this.source);
-    }
-
-    /**
-     * Returns the source
-     *
-     * @return source
-     */
-    public String getSource() {
-        return this.source;
-    }
-
-    /**
-     * Sets the request header name/value combination
-     * see Twitter Fan Wiki for detail.
-     * http://twitter.pbwiki.com/API-Docs#RequestHeaders
-     *
-     * @param name  the name of the request header
-     * @param value the value of the request header
-     */
-    public void setRequestHeader(String name, String value) {
-        http.setRequestHeader(name, value);
-    }
-
-    public void setRetryCount(int retryCount) {
-        http.setRetryCount(retryCount);
-    }
-
-    public void setRetryIntervalSecs(int retryIntervalSecs) {
-        http.setRetryIntervalSecs(retryIntervalSecs);
+    protected void ensureBasicAuthenticationEnabled() {
+        if (!(auth instanceof BasicAuthorization)) {
+            throw new IllegalStateException(
+                    "user ID/password combination not supplied");
+        }
     }
 
     @Override
@@ -260,36 +94,20 @@ import java.util.List;
 
         TwitterSupport that = (TwitterSupport) o;
 
-        if (USE_SSL != that.USE_SSL) return false;
-        if (!accountRateLimitStatusListeners.equals(that.accountRateLimitStatusListeners))
-            return false;
-        if (!http.equals(that.http)) return false;
-        if (!ipRateLimitStatusListeners.equals(that.ipRateLimitStatusListeners))
-            return false;
-        if (source != null ? !source.equals(that.source) : that.source != null)
-            return false;
+        if (!auth.equals(that.auth)) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = http.hashCode();
-        result = 31 * result + (source != null ? source.hashCode() : 0);
-        result = 31 * result + (USE_SSL ? 1 : 0);
-        result = 31 * result + accountRateLimitStatusListeners.hashCode();
-        result = 31 * result + ipRateLimitStatusListeners.hashCode();
-        return result;
+        return auth != null ? auth.hashCode() : 0;
     }
 
     @Override
     public String toString() {
         return "TwitterSupport{" +
-                "http=" + http +
-                ", source='" + source + '\'' +
-                ", USE_SSL=" + USE_SSL +
-                ", accountRateLimitStatusListeners=" + accountRateLimitStatusListeners +
-                ", ipRateLimitStatusListeners=" + ipRateLimitStatusListeners +
+                "auth=" + auth +
                 '}';
     }
 }

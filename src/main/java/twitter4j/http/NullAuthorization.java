@@ -24,13 +24,49 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package twitter4j;
+package twitter4j.http;
+
+import java.io.ObjectStreamException;
+import java.net.HttpURLConnection;
 
 /**
- * @author Andrew Hedges - andrew.hedges at gmail.com
+ * An interface represents credentials.
+ *
+ * @author Yusuke Yamamoto - yusuke at mac.com
  */
-public interface RateLimitStatusListener {
+public final class NullAuthorization implements Authorization, java.io.Serializable {
+    private static NullAuthorization SINGLETON = new NullAuthorization();
+    private static final long serialVersionUID = -8748173338942663960L;
 
-	public void rateLimitStatusUpdated(RateLimitStatusEvent event);
-	public void onRateLimitReached(RateLimitStatusEvent event);
+    public static NullAuthorization getInstance() {
+        return SINGLETON;
+    }
+
+    private NullAuthorization() {
+
+    }
+
+    public void setAuthorizationHeader(String method, String url, PostParameter[] params, HttpURLConnection con) {
+        // does nothing
+    }
+
+    public boolean isAuthenticationEnabled() {
+        return false;
+    }
+
+    /** @noinspection EqualsWhichDoesntCheckParameterClass*/
+    @Override
+    public boolean equals(Object o) {
+        return SINGLETON == o;
+    }
+
+    @Override
+    public String toString() {
+        return "NullAuthentication{SINGLETON}";
+    }
+
+    private Object readResolve() throws ObjectStreamException {
+        return SINGLETON;
+    }
+
 }

@@ -60,7 +60,7 @@ import static twitter4j.ParseUtil.*;
         try {
             sinceId = getLong("since_id", json);
             maxId = getLong("max_id", json);
-            refreshUrl = getURLDecodedString("refresh_url", json);
+            refreshUrl = getUnescapedString("refresh_url", json);
 
             resultsPerPage = getInt("results_per_page", json);
             warning = getRawString("warning", json);

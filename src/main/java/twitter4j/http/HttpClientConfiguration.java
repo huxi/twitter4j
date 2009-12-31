@@ -24,13 +24,26 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package twitter4j;
+package twitter4j.http;
 
 /**
- * @author Andrew Hedges - andrew.hedges at gmail.com
+ * @author Yusuke Yamamoto - yusuke at mac.com
  */
-public interface RateLimitStatusListener {
+public interface HttpClientConfiguration {
 
-	public void rateLimitStatusUpdated(RateLimitStatusEvent event);
-	public void onRateLimitReached(RateLimitStatusEvent event);
+    String getHttpProxyHost();
+
+    int getHttpProxyPort();
+
+    String getHttpProxyUser();
+
+    String getHttpProxyPassword();
+
+    int getHttpConnectionTimeout();
+
+    int getHttpReadTimeout();
+
+    int getHttpRetryCount();
+
+    int getHttpRetryIntervalSeconds();
 }

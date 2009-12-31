@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package twitter4j;
 
+import twitter4j.conf.Configuration;
 import twitter4j.http.PostParameter;
 
 import java.io.IOException;
@@ -39,11 +40,14 @@ import java.util.List;
  * @since Twitter4J 2.0.4
  */
 public class TwitterStream extends TwitterSupport {
-    private final static boolean DEBUG = Configuration.getDebug();
+    private transient static final Configuration conf = Configuration.getInstance();
+
+    private static final boolean DEBUG = conf.isDebug();
 
     private StatusListener statusListener;
     private StreamHandlingThread handler = null;
     private int retryPerMinutes = 1;
+    private static final long serialVersionUID = -762817147320767897L;
 
     /**
      * Constructs a TwitterStream instance. UserID and password should be provided by either twitter4j.properties or system property.
@@ -51,15 +55,22 @@ public class TwitterStream extends TwitterSupport {
      */
     public TwitterStream() {
         super();
+        init();
     }
 
     public TwitterStream(String userId, String password) {
         super(userId, password);
+        init();
     }
 
     public TwitterStream(String userId, String password, StatusListener listener) {
         super(userId, password);
         this.statusListener = listener;
+        init();
+    }
+    private void init(){
+        ensureBasicAuthenticationEnabled();
+        http.setReadTimeout(conf.getHttpStreamingReadTimeout());
     }
 
     /* Streaming API */
@@ -91,11 +102,11 @@ public class TwitterStream extends TwitterSupport {
      * @since Twitter4J 2.0.4
      */
     public StatusStream getFirehoseStream(int count) throws TwitterException {
-
+        ensureBasicAuthenticationEnabled();
         try {
-            return new StatusStream(http.post(getStreamBaseURL() + "1/statuses/firehose.json"
+            return new StatusStream(http.request(requestFactory.createPostRequest(conf.getStreamBaseURL() + "statuses/firehose.json"
                     , new PostParameter[]{new PostParameter("count"
-                            , String.valueOf(count))}, true));
+                            , String.valueOf(count))}, auth)));
         } catch (IOException e) {
             throw new TwitterException(e);
         }
@@ -110,6 +121,7 @@ public class TwitterStream extends TwitterSupport {
      * @since Twitter4J 2.0.10
      */
     public void retweet() throws TwitterException {
+        ensureBasicAuthenticationEnabled();
         startHandler(new StreamHandlingThread(new Object[]{}) {
             public StatusStream getStream() throws TwitterException {
                 return getRetweetStream();
@@ -127,10 +139,10 @@ public class TwitterStream extends TwitterSupport {
      * @since Twitter4J 2.0.10
      */
     public StatusStream getRetweetStream() throws TwitterException {
-
+        ensureAuthenticationEnabled();
         try {
-            return new StatusStream(http.post(getStreamBaseURL() + "1/statuses/retweet.json"
-                    , new PostParameter[]{}, true));
+            return new StatusStream(http.request(requestFactory.createPostRequest(conf.getStreamBaseURL() + "statuses/retweet.json"
+                    , new PostParameter[]{}, auth)));
         } catch (IOException e) {
             throw new TwitterException(e);
         }
@@ -145,6 +157,7 @@ public class TwitterStream extends TwitterSupport {
      * @since Twitter4J 2.0.10
      */
     public void sample() throws TwitterException {
+        ensureBasicAuthenticationEnabled();
         startHandler(new StreamHandlingThread(null) {
             public StatusStream getStream() throws TwitterException {
                 return getSampleStream();
@@ -158,13 +171,14 @@ public class TwitterStream extends TwitterSupport {
      * @return StatusStream
      * @throws TwitterException when Twitter service or network is unavailable
      * @see twitter4j.StatusStream
-     * @see <a href="http://apiwiki.twitter.com/Streaming-API-Documentation#sample">Twitter API Wiki / Streaming API Documentation - sample</a>
+     * @see <a href="http://apiwiki.twitter.com/Streaming-API-Documentation#Sampling">Twitter API Wiki / Streaming API Documentation - Sampling</a>
      * @since Twitter4J 2.0.10
      */
     public StatusStream getSampleStream() throws TwitterException {
+        ensureBasicAuthenticationEnabled();
         try {
-            return new StatusStream(http.get(getStreamBaseURL() + "1/statuses/sample.json"
-                    , true));
+            return new StatusStream(http.request(requestFactory.createGetRequest(conf.getStreamBaseURL() + "statuses/sample.json"
+                    , auth)));
         } catch (IOException e) {
             throw new TwitterException(e);
         }
@@ -202,6 +216,7 @@ public class TwitterStream extends TwitterSupport {
      */
     public StatusStream getFilterStream(int count, int[] follow, String[] track)
             throws TwitterException {
+        ensureBasicAuthenticationEnabled();
         List<PostParameter> postparams = new ArrayList<PostParameter>();
         postparams.add(new PostParameter("count", count));
         if(null != follow && follow.length > 0){
@@ -213,8 +228,8 @@ public class TwitterStream extends TwitterSupport {
                             , toTrackString(track)));
         }
         try {
-            return new StatusStream(http.post(getStreamBaseURL() + "1/statuses/filter.json"
-                    , postparams.toArray(new PostParameter[0]), true));
+            return new StatusStream(http.request(requestFactory.createPostRequest(conf.getStreamBaseURL() + "statuses/filter.json"
+                    , postparams.toArray(new PostParameter[0]), auth)));
         } catch (IOException e) {
             throw new TwitterException(e);
         }
@@ -282,7 +297,6 @@ public class TwitterStream extends TwitterSupport {
         }
 
         public void run() {
-            Status status;
             while (!closed) {
                 try {
                     // dispose outdated retry history
@@ -294,14 +308,13 @@ public class TwitterStream extends TwitterSupport {
                     if(retryHistory.size() < retryPerMinutes){
                         // try establishing connection
                         setStatus("[establishing connection]");
-
                         while (!closed && null == stream) {
                             if (retryHistory.size() < retryPerMinutes) {
                                 retryHistory.add(System.currentTimeMillis());
                                 stream = getStream();
                             }
                         }
-                    }else{
+                    }else if(!closed) {
                         // exceeded retry limit, wait to a moment not to overload Twitter API
                         long timeToSleep = 60000 - (System.currentTimeMillis() - retryHistory.get(retryHistory.size() - 1));
                         setStatus("[retry limit reached. sleeping for " + (timeToSleep / 1000) + " secs]");
@@ -325,14 +338,15 @@ public class TwitterStream extends TwitterSupport {
                     statusListener.onException(te);
                 }
             }
+            try {
+                this.stream.close();
+            } catch (IOException ignore) {
+            }
         }
 
         public synchronized void close() throws IOException {
             setStatus("[disposing thread]");
-            if (null != stream) {
-                this.stream.close();
-                closed = true;
-            }
+            closed = true;
         }
         private void setStatus(String message){
             String actualMessage = NAME + message;
@@ -342,10 +356,6 @@ public class TwitterStream extends TwitterSupport {
 
         abstract StatusStream getStream() throws TwitterException;
 
-    }
-
-    private String getStreamBaseURL() {
-        return USE_SSL ? "https://stream.twitter.com/" : "http://stream.twitter.com/";
     }
 
     private void log(String message) {

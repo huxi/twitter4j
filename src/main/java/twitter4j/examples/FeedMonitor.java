@@ -33,9 +33,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.TwitterFactory;
 import twitter4j.http.HttpClient;
 import twitter4j.http.Response;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -103,13 +105,23 @@ public class FeedMonitor {
     public FeedMonitor(String fileName) {
         this.fileName = fileName;
         log.info("Loading properties from " + fileName);
+
+        FileInputStream fis = null;
         try {
-            prop.load(new FileInputStream(fileName));
+            fis = new FileInputStream(fileName);
+            prop.load(fis);
         } catch (IOException ex) {
             log.error("Configuration file not found:" + ex.getMessage());
-            System.exit( -1);
+            System.exit(-1);
+        } finally {
+            if (null != fis) {
+                try {
+                    fis.close();
+                } catch (IOException ignore) {
+                }
+            }
         }
-        this.twitter = new Twitter(prop.getProperty("id"),
+        this.twitter = TwitterFactory.getBasicAuthenticatedInstance(prop.getProperty("id"),
                                    prop.getProperty("password"));
         this.feedurl = prop.getProperty("feedurl");
         this.lastUpdate = new Date(Long.valueOf(prop.getProperty("lastUpdate",
@@ -160,7 +172,6 @@ public class FeedMonitor {
                         }
                     }
                     log.info("Updating Twitter.");
-//                    System.out.println(status);
                     twitter.updateStatus(status);
                     log.info("Done.");
                 }
@@ -168,12 +179,22 @@ public class FeedMonitor {
             if (!lastUpdate.equals(latestEntry)) {
                 log.info("Updating last update.");
                 prop.setProperty("lastUpdate",
-                                 String.valueOf(latestEntry.getTime()));
+                        String.valueOf(latestEntry.getTime()));
+                FileOutputStream fos = null;
                 try {
-                    prop.store(new FileOutputStream(fileName), "FeedMonitor");
+                    fos = new FileOutputStream(fileName);
+                    prop.store(fos, "FeedMonitor");
                 } catch (IOException ex1) {
                     log.error("Failed to save configuration file:" +
-                              ex1.getMessage());
+                            ex1.getMessage());
+                } finally {
+                    try {
+                        if (null != fos) {
+                            fos.close();
+                        }
+                    } catch (IOException ignore) {
+
+                    }
                 }
             } else {
                 log.info("No new entry found.");

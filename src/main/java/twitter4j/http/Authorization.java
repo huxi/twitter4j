@@ -24,13 +24,17 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package twitter4j;
+package twitter4j.http;
+
+import java.net.HttpURLConnection;
 
 /**
- * @author Andrew Hedges - andrew.hedges at gmail.com
+ * An interface represents credentials.
+ *
+ * @author Yusuke Yamamoto - yusuke at mac.com
  */
-public interface RateLimitStatusListener {
+public interface Authorization extends java.io.Serializable {
+    void setAuthorizationHeader(String method, String url, PostParameter[] params, HttpURLConnection con);
 
-	public void rateLimitStatusUpdated(RateLimitStatusEvent event);
-	public void onRateLimitReached(RateLimitStatusEvent event);
+    boolean isAuthenticationEnabled();
 }

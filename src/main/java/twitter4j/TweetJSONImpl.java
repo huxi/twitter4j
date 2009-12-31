@@ -53,21 +53,16 @@ import static twitter4j.ParseUtil.*;
     private GeoLocation geoLocation = null;
     private static final long serialVersionUID = 4299736733993211587L;
 
-    /*package*/ TweetJSONImpl() {
-        // Just for protobuf support
-        // Currently this constructor is never used in twitter4j artifact.
-    }
-
     /*package*/ TweetJSONImpl(JSONObject tweet) throws TwitterException {
-        text = getURLDecodedString("text", tweet);
+        text = getUnescapedString("text", tweet);
         toUserId = getInt("to_user_id", tweet);
         toUser = getRawString("to_user", tweet);
         fromUser = getRawString("from_user", tweet);
         id = getLong("id", tweet);
         fromUserId = getInt("from_user_id", tweet);
         isoLanguageCode = getRawString("iso_language_code", tweet);
-        source = getURLDecodedString("source", tweet);
-        profileImageUrl = getURLDecodedString("profile_image_url", tweet);
+        source = getUnescapedString("source", tweet);
+        profileImageUrl = getUnescapedString("profile_image_url", tweet);
         createdAt = getDate("created_at", tweet, "EEE, dd MMM yyyy HH:mm:ss z");
         geoLocation = GeoLocation.getInstance(tweet);
 
@@ -166,10 +161,6 @@ import static twitter4j.ParseUtil.*;
      */
     public String getProfileImageUrl() {
         return profileImageUrl;
-    }
-
-    public void setProfileImageUrl(String profileImageUrl) {
-        this.profileImageUrl = profileImageUrl;
     }
 
     /**
